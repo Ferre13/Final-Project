@@ -1,6 +1,6 @@
 import pyxel
 
-
+class Enemy:
     """An enemy character (Goomba)."""
 
     def __init__(self, x, y):

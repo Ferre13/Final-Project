@@ -4,8 +4,8 @@ This file contains all the constants used in the game.
 import random
 
 # Screen size
-SCREEN_WIDTH = 384
-SCREEN_HEIGHT = 256
+SCREEN_WIDTH = 100
+SCREEN_HEIGHT = 150
 
 # Game states
 GAME_PLAYING = 1

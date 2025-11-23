@@ -1,5 +1,9 @@
 import pyxel
-from constants import TRUCK_EMPTY, TRUCK_AWAY_DURATION
+from constants import (
+    TRUCK_EMPTY, TRUCK_1, TRUCK_2, TRUCK_3, TRUCK_4,
+    TRUCK_5, TRUCK_6, TRUCK_7, TRUCK_8, TRUCK_FULL,
+    TRUCK_AWAY_DURATION
+)
 
 class Truck:
     """
@@ -19,11 +23,22 @@ class Truck:
         self._packages_loaded = 0
         self._is_away = False
         self._away_timer = 0
+        self._is_animating = False
+        self._animation_timer = 0
+        self._is_moving_away = False
+        self._sprites = [
+            TRUCK_EMPTY, TRUCK_1, TRUCK_2, TRUCK_3, TRUCK_4,
+            TRUCK_5, TRUCK_6, TRUCK_7, TRUCK_8
+        ]
 
     @property
     def x(self) -> int:
         return self._x
 
+    @x.setter
+    def x(self, value: int):
+        self._x = value
+        
     @property
     def y(self) -> int:
         return self._y
@@ -41,6 +56,8 @@ class Truck:
         self._is_away = value
         if value:
             self._away_timer = TRUCK_AWAY_DURATION
+            if not self._is_moving_away:
+                self.x = TRUCK_X
         else:
             self._packages_loaded = 0
 
@@ -52,7 +69,8 @@ class Truck:
             self._packages_loaded += 1
         
         if self.is_full:
-            self.is_away = True
+            self._is_animating = True
+            self._animation_timer = 180 # 3 seconds at 60fps
             return True
         return False
 
@@ -60,6 +78,18 @@ class Truck:
         """
         Updates the truck's state.
         """
+        if self._is_animating:
+            self._animation_timer -= 1
+            if self._animation_timer <= 0:
+                self._is_animating = False
+                self._is_moving_away = True
+        
+        if self._is_moving_away:
+            self.x -= 2
+            if self.x < -48:
+                self._is_moving_away = False
+                self.is_away = True
+
         if self.is_away:
             self._away_timer -= 1
             if self._away_timer <= 0:
@@ -69,5 +99,12 @@ class Truck:
         """
         Draws the truck on the screen.
         """
-        if not self.is_away:
-            pyxel.blt(self.x, self.y, *TRUCK_EMPTY)
+        if not self.is_away or self._is_moving_away:
+            sprite = self._sprites[self._packages_loaded]
+            if self._is_animating:
+                if (self._animation_timer // 30) % 2 == 0:
+                    sprite = TRUCK_FULL
+                else:
+                    sprite = self._sprites[8]
+            
+            pyxel.blt(self.x, self.y, *sprite)

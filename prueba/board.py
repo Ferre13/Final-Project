@@ -14,7 +14,7 @@ from conveyor import Conveyor
 from truck import Truck
 from boss import Boss
 from package import Package
-from platform import Platform
+from game_platform import Platform
 from exit_signal import ExitSignal
 from score import Score
 from vertical_structure import VerticalStructure
@@ -50,7 +50,7 @@ class Board:
         self.truck = Truck(x=TRUCK_X, y=TRUCK_Y)
         self.exit_signal = ExitSignal(x=TRUCK_X + 48, y=TRUCK_Y)
         self.score_display = Score(x=5, y=5)
-        self.vertical_structure = VerticalStructure(x=self.width/2 - 6, height=self.height // 16)
+        self.vertical_structure = VerticalStructure(x=self.width/2 - 18, height=self.height // 16, width=3)
         self.machine = Machine(x=CONVEYOR_X_RIGHT, y=FLOOR_Y_POSITIONS[1] - 16)
         self.window = Window(x=self.width/2 - 16, y=32)
         
@@ -80,8 +80,10 @@ class Board:
         platforms = []
         for i in range(self.num_conveyors + 1):
             y_position = FLOOR_Y_POSITIONS[i] + 16
-            platforms.append(Platform(x=MARIO_X - 8, y=y_position, width=3))
-            platforms.append(Platform(x=LUIGI_X - 8, y=y_position, width=3))
+            if i % 2 == 0:
+                platforms.append(Platform(x=MARIO_X - 8, y=y_position, width=3))
+            if i % 2 != 0:
+                platforms.append(Platform(x=LUIGI_X - 8, y=y_position, width=3))
         return platforms
 
     def _create_conveyors(self) -> List[Conveyor]:
@@ -97,7 +99,7 @@ class Board:
             if self.difficulty == "crazy" and i > 0:
                 speed = random.uniform(1, 2)
 
-            conveyors.append(Conveyor(y=y_position, speed=speed, length=CONVEYOR_LENGTH, direction=direction))
+            conveyors.append(Conveyor(y=y_position, speed=speed, length=CONVEYOR_LENGTH, direction=direction, vertical_structure_x=self.vertical_structure._x, vertical_structure_width=self.vertical_structure._width))
         return conveyors
 
     def update(self):
@@ -118,6 +120,8 @@ class Board:
             
         if self.game_state == GAME_TRUCK:
             self.truck.update()
+            self.mario.rest()
+            self.luigi.rest()
             if not self.truck.is_away:
                 self.game_state = GAME_PLAYING
             return
@@ -222,7 +226,7 @@ class Board:
         """
         Draws all game elements on the screen.
         """
-        pyxel.cls(0)
+        pyxel.cls(0)  # 7, 13, 15
         
         # Draw window
         self.window.draw()

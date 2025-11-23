@@ -1,14 +1,5 @@
 import pyxel
-from constants import (
-    GAME_PLAYING, GAME_PAUSE, GAME_OVER, GAME_TRUCK,
-    NUM_CONVEYORS_EASY, NUM_CONVEYORS_MEDIUM, NUM_CONVEYORS_EXTREME, NUM_CONVEYORS_CRAZY,
-    SLOW_SPEED, MEDIUM_SPEED, FAST_SPEED, RANDOM_SPEED, CONVEYOR_LENGTH,
-    CONVEYOR_X_RIGHT, CONVEYOR_X_LEFT,
-    MARIO_X, LUIGI_X,
-    BOSS_LUIGI, BOSS_Y, TRUCK_X, TRUCK_Y,
-    BOSS_SCENE, MAX_FAILURES,
-    POINTS_PER_PACKAGE, PLATFORM_SPRITE, EXIT_SIGNAL_SPRITE
-)
+import constants
 from conveyor import Conveyor
 from truck import Truck
 from platforms import Platform
@@ -30,23 +21,23 @@ class Board:
         
         self.score = 0
         self.failures = 0
-        self.game_state = GAME_PLAYING
+        self.game_state = constants.GAME_PLAYING
         
         # Game elements
-        self.truck = Truck(image="truck_image", x_pos=TRUCK_X, y_pos=TRUCK_Y)
+        self.truck = Truck(image="truck_image", x_pos=constants.TRUCK_X, y_pos=constants.TRUCK_Y)
         
         if self.difficulty == "easy":
-            self.num_conveyors = NUM_CONVEYORS_EASY
-            self.conveyor_speed = SLOW_SPEED
+            self.num_conveyors = constants.NUM_CONVEYORS_EASY
+            self.conveyor_speed = constants.SLOW_SPEED
         elif self.difficulty == "medium":
-            self.num_conveyors = NUM_CONVEYORS_MEDIUM
-            self.conveyor_speed = MEDIUM_SPEED
+            self.num_conveyors = constants.NUM_CONVEYORS_MEDIUM
+            self.conveyor_speed = constants.MEDIUM_SPEED
         elif self.difficulty == "extreme":
-            self.num_conveyors = NUM_CONVEYORS_EXTREME
-            self.conveyor_speed = FAST_SPEED
+            self.num_conveyors = constants.NUM_CONVEYORS_EXTREME
+            self.conveyor_speed = constants.FAST_SPEED
         elif self.difficulty == "crazy":
-            self.num_conveyors = NUM_CONVEYORS_CRAZY
-            self.conveyor_speed = RANDOM_SPEED
+            self.num_conveyors = constants.NUM_CONVEYORS_CRAZY
+            self.conveyor_speed = constants.RANDOM_SPEED
         
     """
         self.conveyors: List[Conveyor] = self.__create_conveyors()
@@ -129,7 +120,7 @@ class Board:
     @game_state.setter
     def game_state(self, game_state: str):
         """ This is the setter method for the game_state attribute """
-        if game_state not in [GAME_PLAYING, GAME_PAUSE, GAME_OVER, GAME_TRUCK]:
+        if game_state not in [constants.GAME_PLAYING, constants.GAME_PAUSE, constants.GAME_OVER, constants.GAME_TRUCK]:
             raise ValueError("The game state must be a valid state")
         self.__game_state = game_state
     

@@ -71,6 +71,6 @@ class Conveyor:
         """
         sprite_width = constants.CONVEYOR_SPRITE[3]
         num_sprites = self.length // sprite_width
-        for i in range(num_sprites):
-            x = constants.CONVEYOR_X_LEFT + (i * sprite_width)
+        for conv in range(num_sprites):
+            x = constants.CONVEYOR_X_LEFT + conv * sprite_width
             pyxel.blt(x, self.y_pos, *constants.CONVEYOR_SPRITE)

@@ -1,56 +1,50 @@
 import constants
+import pyxel
 
 class Conveyor:
-    """ This class represents the conveyor belt in the game. """
-    def __init__(self, image: str, speed: int, x_pos: int, y_pos: int):
+    """ 
+    This class represents the conveyor belt in the game. 
+    """
+    def __init__(self, speed: float, length: int, y_pos: int, direction: int):
         """ This is the magic method we must use to declare the attributes of our objects.
-        :param image: str - The image of the conveyor belt
         :param speed: int - The speed of the conveyor belt
+        :param y_pos: The y-coordinate of the conveyor belt.
+        :param length: The length of the conveyor belt.
+        :param direction: The direction of the conveyor belt (-1 for left, 1 for right).
+
         """
         # Attributes must always start by self.
-        self.image = image
         self.speed = speed
-        self.x_pos = x_pos
+        self.length = length
         self.y_pos = y_pos
+        self.direction = direction
 
     @property
-    def image(self):
-        """ This is the getter method for the image attribute """
-        return self.__image
-    
-    @image.setter
-    def image(self, image: str):
-        """ This is the setter method for the image attribute """
-        if not isinstance(image, str):
-            raise TypeError("The image must be a string")
-        self.__image = image
-
-    @property
-    def speed(self):
+    def speed(self) -> float:
         """ This is the getter method for the speed attribute """
         return self.__speed
     
     @speed.setter
-    def speed(self, speed: int):
+    def speed(self, speed: float):
         """ This is the setter method for the speed attribute """
-        if not isinstance(speed, int):
+        if not isinstance(speed, float):
             raise TypeError("The speed must be an integer")
         self.__speed = speed
 
     @property
-    def x_pos(self):
-        """ This is the getter method for the x_pos attribute """
-        return self.__x_pos
+    def length(self) -> int:
+        """ This is the getter method for the length attribute """
+        return self.__length
     
-    @x_pos.setter
-    def x_pos(self, x_pos: int):
-        """ This is the setter method for the x_pos attribute """
-        if not isinstance(x_pos, int):
-            raise TypeError("The x position must be an integer")
-        self.__x_pos = x_pos
+    @length.setter
+    def length(self, length: int):
+        """ This is the setter method for the length attribute """
+        if not isinstance(length, int):
+            raise TypeError("The length must be an integer")
+        self.__length = length
 
     @property
-    def y_pos(self):
+    def y_pos(self) -> int:
         """ This is the getter method for the y_pos attribute """
         return self.__y_pos
     
@@ -60,3 +54,23 @@ class Conveyor:
         if not isinstance(y_pos, int):
             raise TypeError("The y position must be an integer")
         self.__y_pos = y_pos
+
+    @property
+    def direction(self) -> int:
+        return self.__direction
+    
+    @direction.setter
+    def direction(self, value: int):
+        if not isinstance(value, int) or value not in [-1, 1]:
+            raise ValueError("Direction must be -1 (left) or 1 (right)")
+        self.__direction = value
+
+    def draw(self):
+        """
+        Draws the conveyor belt on the screen.
+        """
+        sprite_width = constants.CONVEYOR_SPRITE[3]
+        num_sprites = self.length // sprite_width
+        for conv in range(num_sprites):
+            x = constants.CONVEYOR_X_LEFT + conv * sprite_width
+            pyxel.blt(x, self.y_pos, *constants.CONVEYOR_SPRITE)

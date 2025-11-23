@@ -7,7 +7,7 @@ class Game:
         pyxel.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, title="Mario Bros Game")
         pyxel.load(constants.SPRITES_FILE)
         
-        self.board = board.Board("EXTREME")
+        self.board = board.Board("EASY")
         
         pyxel.run(self.update, self.draw)
 

@@ -2,7 +2,7 @@ import pyxel
 from constants import (
     TRUCK_EMPTY, TRUCK_1, TRUCK_2, TRUCK_3, TRUCK_4,
     TRUCK_5, TRUCK_6, TRUCK_7, TRUCK_8, TRUCK_FULL,
-    TRUCK_AWAY_DURATION
+    TRUCK_AWAY_DURATION, TRUCK_X
 )
 
 class Truck:

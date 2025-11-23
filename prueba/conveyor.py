@@ -1,5 +1,5 @@
 import pyxel
-from constants import *
+from constants import CONVEYOR_SPRITE
 
 class Conveyor:
     """
@@ -37,7 +37,9 @@ class Conveyor:
 
     def draw(self):
         """
-        Draws the conveyor belt.
+        Draws the conveyor belt using sprites.
         """
-        # Draw the conveyor belt itself (a simple line for now)
-        pyxel.rect(0, self.y, self._length, 2, 7) # Example color
+        sprite_width = CONVEYOR_SPRITE[3]
+        num_sprites = self._length // sprite_width
+        for i in range(num_sprites):
+            pyxel.blt(i * sprite_width, self.y, *CONVEYOR_SPRITE)

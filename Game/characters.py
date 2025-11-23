@@ -6,6 +6,7 @@ class Character:
         """ This is the magic method we must use to declare the attributes of our objects.
         :param image: str - The image of the character
         :param side: str - The side where the character is located
+        :param x_pos: int - The initial x-coordinate of the character
         """
         # Attributes must always start by self.
         self.image = image

@@ -1,5 +1,8 @@
 import pyxel
-from constants import *
+from constants import (
+    MARIO_X, LUIGI_X, FLOOR_Y_POSITIONS,
+    MARIO_STATIC, LUIGI_STATIC
+)
 
 class Character:
     """
@@ -7,18 +10,18 @@ class Character:
     This is a base class for Mario and Luigi.
     """
 
-    def __init__(self, x: int, sprites: dict, initial_floor: int):
+    def __init__(self, x: int, sprite: tuple, initial_floor: int):
         """
         Initialize the Character.
         :param x: The initial x-coordinate of the character.
-        :param sprites: A dictionary of sprites for the character.
+        :param sprite: The initial sprite for the character.
         :param initial_floor: The initial floor index for the character.
         """
         self._x = x
         self._floor = initial_floor
         self._y = FLOOR_Y_POSITIONS[self._floor]
-        self._sprites = sprites
-        self._current_sprite = sprites["right"]
+        self._current_sprite = sprite
+        self._state = "static"
 
     @property
     def x(self) -> int:
@@ -60,7 +63,7 @@ class Mario(Character):
         """
         Initialize Mario.
         """
-        super().__init__(MARIO_X, MARIO_SPRITES, initial_floor=0)
+        super().__init__(MARIO_X, MARIO_STATIC, initial_floor=1)
 
     def update(self):
         """
@@ -79,7 +82,7 @@ class Luigi(Character):
         """
         Initialize Luigi.
         """
-        super().__init__(LUIGI_X, LUIGI_SPRITES, initial_floor=0)
+        super().__init__(LUIGI_X, LUIGI_STATIC, initial_floor=1)
 
     def update(self):
         """

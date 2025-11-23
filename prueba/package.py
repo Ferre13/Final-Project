@@ -1,5 +1,5 @@
 import pyxel
-from constants import *
+from constants import SLOW_SPEED, PCK_LVL1
 
 class Package:
     """
@@ -18,7 +18,7 @@ class Package:
         self._y = y
         self._direction = direction
         self._is_full = is_full
-        self._speed = PACKAGE_SPEED
+        self._speed = SLOW_SPEED
 
     @property
     def x(self) -> int:
@@ -62,4 +62,4 @@ class Package:
         """
         Draws the package on the screen.
         """
-        pyxel.blt(self.x, self.y, *PACKAGE_SPRITE)
+        pyxel.blt(self.x, self.y, *PCK_LVL1)

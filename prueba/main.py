@@ -13,16 +13,10 @@ class Game:
         """
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Mario Bros. Factory")
         
-        # TODO: You need to create a 'my_resource.pyxres' file using the 
-        # Pyxel editor and place it in the same directory as main.py.
-        # For now, the game will run with placeholder graphics.
-        # try:
         pyxel.load("assets/my_resource.pyxres")
-        # except Exception:
-        #     print("Could not load resource file. Please create 'my_resource.pyxres'.")
 
-
-        self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, difficulty="easy")
+        self.difficulty = "easy"
+        self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, difficulty=self.difficulty)
         
         pyxel.run(self.update, self.draw)
 

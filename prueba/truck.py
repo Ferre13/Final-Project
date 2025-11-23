@@ -1,5 +1,5 @@
 import pyxel
-from constants import *
+from constants import TRUCK_EMPTY, TRUCK_AWAY_DURATION
 
 class Truck:
     """
@@ -70,4 +70,4 @@ class Truck:
         Draws the truck on the screen.
         """
         if not self.is_away:
-            pyxel.blt(self.x, self.y, *TRUCK_SPRITE)
+            pyxel.blt(self.x, self.y, *TRUCK_EMPTY)

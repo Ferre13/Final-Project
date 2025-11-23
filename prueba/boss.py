@@ -1,5 +1,6 @@
 import pyxel
-from constants import *
+from constants import BOSS_1
+from door import Door
 
 class Boss:
     """
@@ -16,6 +17,7 @@ class Boss:
         self._y = y
         self._is_visible = False
         self._timer = 0
+        self.door = Door(x, y)
 
     @property
     def is_visible(self) -> bool:
@@ -28,19 +30,23 @@ class Boss:
         """
         self._is_visible = True
         self._timer = duration
+        self.door.open()
 
     def update(self):
         """
         Updates the boss's visibility timer.
         """
+        self.door.update()
         if self._is_visible:
             self._timer -= 1
             if self._timer <= 0:
                 self._is_visible = False
+                self.door.close()
 
     def draw(self):
         """
-        Draws the boss on the screen if visible.
+        Draws the boss and the door on the screen.
         """
-        if self.is_visible:
-            pyxel.blt(self._x, self._y, *BOSS_SPRITE)
+        self.door.draw()
+        if self.is_visible and self.door._state == "open":
+            pyxel.blt(self._x, self._y, *BOSS_1)

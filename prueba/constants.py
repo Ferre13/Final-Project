@@ -145,17 +145,6 @@ BOSS_Y = 100
 BOSS_MARIO = SCREEN_WIDTH - 20
 BOSS_LUIGI = 10
 
-# Clock sprites
-CLOCK_1 = (1, 0, 40, 8, 8, 0)
-CLOCK_2 = (1, 8, 40, 8, 8, 0)
-CLOCK_3 = (1, 0, 48, 8, 8, 0)
-CLOCK_4 = (1, 8, 48, 8, 8, 0)
-CLOCK_5 = (1, 0, 56, 8, 8, 0)
-CLOCK_6 = (1, 8, 56, 8, 8, 0)
-CLOCK_7 = (1, 0, 64, 8, 8, 0)
-CLOCK_8 = (1, 8, 64, 8, 8, 0)
-CLOCK_SPRITES = [CLOCK_1, CLOCK_2, CLOCK_3, CLOCK_4, CLOCK_5, CLOCK_6, CLOCK_7, CLOCK_8]
-
 # Characters controls
 MARIO_UP = "up"
 MARIO_DOWN = "down"

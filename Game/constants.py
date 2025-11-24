@@ -5,7 +5,7 @@ import random
 
 # Screen size
 SCREEN_WIDTH = 256
-SCREEN_HEIGHT = 144
+SCREEN_HEIGHT = 128
 
 # Game states. Not used?
 GAME_PLAYING = 1
@@ -120,7 +120,7 @@ WINDOW_SPRITE = (1, 18, 2, 32, 12, 0)
 
 # Distances
 CONVEYOR_Y_START = SCREEN_HEIGHT - 16
-CONVEYOR_DISTANCE = 12
+CONVEYOR_DISTANCE = 11
 
 # Floors
 NUM_EASY_CRAZY = 5

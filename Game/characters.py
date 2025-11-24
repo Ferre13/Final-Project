@@ -16,13 +16,13 @@ class Character:
 
         # --- SETUP BASED ON CHARACTER ---
         if self.name == "Mario":
-            self.sprite = constants.MARIO_WAIT
+            self.sprite = constants.MARIO_STATIC
             self.key_up = pyxel.KEY_UP
             self.key_down = pyxel.KEY_DOWN
             # Mario starts on Floor 0 (The Ground)
             self.floor = 0
         else:
-            self.sprite = constants.LUIGI_PCK
+            self.sprite = constants.LUIGI_STATIC
             self.key_up = pyxel.KEY_W
             self.key_down = pyxel.KEY_S
             # Luigi starts on Floor 1 (The first Conveyor)
@@ -75,13 +75,13 @@ class Character:
             # Ground Y is calculated as SCREEN_HEIGHT - 11 in board.py.
             # We recreate that logic here or pass it. 
             # Ground Top = 144 - 11 = 133.
-            ground_top = constants.SCREEN_HEIGHT - 11
+            ground_top = constants.SCREEN_HEIGHT - 6
             self.y = ground_top - sprite_h
         elif self.floor > 0 and (self.floor - 1) < len(floors_list):
             # ELEVATED FLOORS
             # Floor 1 corresponds to floors_list[0]
             floor_y = floors_list[self.floor - 1]
-            self.y = (floor_y +1) - sprite_h
+            self.y = (floor_y + 2) - sprite_h
 
     def draw(self):
         """ Draw the character sprite """

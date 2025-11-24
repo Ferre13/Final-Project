@@ -75,7 +75,7 @@ class Board:
         self.truck.reset()
 
         # Ground calculations
-        ground_height_px = 11
+        ground_height_px = 6
         ground_start_y = constants.SCREEN_HEIGHT - ground_height_px
 
         # Create Exit Signal
@@ -94,7 +94,7 @@ class Board:
             else:
                 plat_x = constants.LUIGI_X
 
-            self.platforms.append(Platform(plat_x, y_pos + 1, 1))
+            self.platforms.append(Platform(plat_x, y_pos + 2, 1))
 
             if index % 2 == 0:
                 direction = -1

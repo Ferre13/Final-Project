@@ -7,7 +7,7 @@ import random
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 144
 
-# Game states
+# Game states. Not used?
 GAME_PLAYING = 1
 GAME_OVER = 2
 GAME_TRUCK = 3
@@ -73,9 +73,15 @@ TRUCK_FULL = (0, 64, 144, 32, 16, 0)
 
 # Conveyor sprite
 CONVEYOR_SPRITE = (0, 32, 154, 32, 4, 0)  
+
+# Life sprite
 LIFE_SPRITE = (0, 32, 112, 16, 16, 0)
+
+# Platform & Floor sprites
 PLATFORM_SPRITE = (0, 15, 187, 17, 19, 0)
-PLATFORM_0_SPRITE = (1, 33, 34, 16, 2, 0)
+FLOOR_SPRITE = (1, 33, 34, 16, 2, 0)
+
+# Door & Exit Signal sprites
 EXIT_SIGNAL_SPRITE = (0, 32, 128, 16, 7, 0)
 DOOR_CLOSED = (0, 32, 136, 16, 16, 0)
 DOOR_OPENING = (0, 48, 136, 16, 16, 0)
@@ -93,17 +99,22 @@ NUMBER_7 = (1, 2, 24, 4, 8, 0)
 NUMBER_8 = (1, 10, 24, 4, 8, 0)
 NUMBER_9 = (1, 2, 32, 4, 8, 0)
 
+NUMBER_SPRITES = [NUMBER_0, NUMBER_1, NUMBER_2, NUMBER_3, NUMBER_4, NUMBER_5, NUMBER_6, NUMBER_7, NUMBER_8, NUMBER_9]
+
 # Level text sprites
 LEVEL_EASY = (0, 33, 160, 15, 5, 0)
 LEVEL_MEDIUM = (0, 32, 166, 21, 5, 0)
 LEVEL_EXTREME = (0, 32, 172, 27, 5, 0)
 LEVEL_CRAZY = (0, 32, 178, 19, 5, 0)
 
+# Vertical Structure sprite
 VERTICAL_STRUCTURE_SPRITE = (1, 18, 17, 12, 35, 0)
-MACHINE_SPRITE = (1, 32, 17, 14, 13, 0)
-WINDOW_SPRITE = (1, 18, 2, 32, 12, 0)
 
-NUMBER_SPRITES = [NUMBER_0, NUMBER_1, NUMBER_2, NUMBER_3, NUMBER_4, NUMBER_5, NUMBER_6, NUMBER_7, NUMBER_8, NUMBER_9]
+# Machine sprite
+MACHINE_SPRITE = (1, 32, 17, 14, 13, 0)
+
+# Window sprite
+WINDOW_SPRITE = (1, 18, 2, 32, 12, 0)
 
 # GAME SETTINGS
 
@@ -132,8 +143,8 @@ for floors in range(NUM_EXTREME):
     FLOORS_EXTREME.append(floor)
 
 # Vertical Structure Logic
-CENTER_SCREEN = SCREEN_WIDTH // 2  # 128
-STRUCT_WIDTH_PX = 24 
+CENTER_SCREEN = SCREEN_WIDTH // 2
+STRUCT_WIDTH_PX = VERTICAL_STRUCTURE_SPRITE[3] * 2
 STRUCT_X = CENTER_SCREEN - (STRUCT_WIDTH_PX // 2)
 
 # Conveyor Dimensions (Split)
@@ -141,17 +152,15 @@ CONVEYOR_LENGTH = int(CONVEYOR_SPRITE[3] * 1.5)
 CONVEYOR_X_LEFT = STRUCT_X - CONVEYOR_LENGTH
 CONVEYOR_X_RIGHT = STRUCT_X + STRUCT_WIDTH_PX
 
-# Conveyor ends at approx 68 (Left) and 188 (Right)
-# Gap of 4px. Platform width is 21px.
-# Luigi (Left): 68 (End) - 4 (Gap) - 21 (Width) = 43
+# Character & Platform positions
 LUIGI_X = 49
 MARIO_X = 190
 
-# Machine & Conveyor0
+# Machine position
 MACHINE_X = SCREEN_WIDTH - 20
 MACHINE_Y = SCREEN_HEIGHT - 24 
 
-# The conveyor connected to the machine
+# Machine Conveyor Dimensions
 MACHINE_CONV_LENGTH = 32 
 MACHINE_CONV_X = MACHINE_X - MACHINE_CONV_LENGTH
 
@@ -159,7 +168,8 @@ MACHINE_CONV_X = MACHINE_X - MACHINE_CONV_LENGTH
 TRUCK_X = 15
 
 # Boss positions
-BOSS_Y = 60
+# Watch out
+BOSS_Y = MACHINE_Y - 7
 BOSS_MARIO = SCREEN_WIDTH - 20
 BOSS_LUIGI = 10
 

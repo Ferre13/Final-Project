@@ -68,8 +68,8 @@ class Board:
         self.exit_signal = ExitSignal(2, self.truck.y - 10)
 
         # Ground Params
-        sprite_h = constants.PLATFORM_0_SPRITE[4] # 2px
-        sprite_w = constants.PLATFORM_0_SPRITE[3] # 14px
+        sprite_h = constants.FLOOR_SPRITE[4] # 2px
+        sprite_w = constants.FLOOR_SPRITE[3] # 14px
         ground_height_px = 11
         ground_start_y = constants.SCREEN_HEIGHT - ground_height_px
 
@@ -124,23 +124,23 @@ class Board:
         
         for i in range(truck_floor_segments):
             y = truck_floor_y + (i * sprite_h)
-            p = Platform(0, y, truck_floor_width, is_flipped=False, sprite=constants.PLATFORM_0_SPRITE)
+            p = Platform(0, y, truck_floor_width, is_flipped=False, sprite=constants.FLOOR_SPRITE)
             self.platforms.append(p)
 
         # --- 5. BOSS & DOOR FLOORS ---
-        boss_floor_y = constants.MACHINE_Y - 5
+        boss_floor_y = constants.BOSS_Y + 2
         boss_floor_width = 2
         
         boss_plat_left = Platform(
             0, boss_floor_y, boss_floor_width, 
-            is_flipped=False, sprite=constants.PLATFORM_0_SPRITE
+            is_flipped=False, sprite=constants.FLOOR_SPRITE
         )
         self.platforms.append(boss_plat_left)
 
         right_start_x = constants.SCREEN_WIDTH - (boss_floor_width * sprite_w)
         boss_plat_right = Platform(
             right_start_x, boss_floor_y, boss_floor_width, 
-            is_flipped=False, sprite=constants.PLATFORM_0_SPRITE
+            is_flipped=False, sprite=constants.FLOOR_SPRITE
         )
         self.platforms.append(boss_plat_right)
 
@@ -154,7 +154,7 @@ class Board:
             y = ground_start_y + (r * sprite_h)
             ground_plat = Platform(
                 0, y, sprites_per_row, 
-                is_flipped=False, sprite=constants.PLATFORM_0_SPRITE
+                is_flipped=False, sprite=constants.FLOOR_SPRITE
             )
             self.platforms.append(ground_plat)
 

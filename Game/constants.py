@@ -17,20 +17,20 @@ GAME_PAUSE = 4
 SPRITES_FILE = "assets/my_resource.pyxres"
 
 # Mario sprites
-MARIO_STATIC = (0, 32, 0, 16, 16, 0)
-MARIO_WAIT = (0, 32, 16, 16, 16, 0)
-MARIO_PCK = (0, 32, 32, 16, 16, 0)
-MARIO_BOSS = (0, 32, 48, 16, 16, 0)
-MARIO_REST1 = (0, 32, 64, 16, 16, 0)
-MARIO_REST2 = (0, 32, 80, 16, 16, 0)
+MARIO_STATIC = (0, 36, 2, 10, 14, 0)
+MARIO_WAIT = (0, 35, 18, 13, 14, 0)
+MARIO_PCK = (0, 36, 33, 12, 15, 0)
+MARIO_BOSS = (0, 35, 50, 10, 14, 0)
+MARIO_REST1 = (0, 33, 66, 13, 13, 0)
+MARIO_REST2 = (0, 33, 83, 14, 12, 0)
 
 # Luigi sprites
-LUIGI_STATIC = (0, 48, 0, 16, 16, 0)  
-LUIGI_WAIT = (0, 48, 16, 16, 16, 0)  
-LUIGI_PCK = (0, 48, 32, 16, 16, 0)  
-LUIGI_BOSS = (0, 48, 48, 16, 16, 0)
-LUIGI_REST1 = (0, 48, 64, 16, 16, 0)
-LUIGI_REST2 = (0, 48, 80, 16, 16, 0)
+LUIGI_STATIC = (0, 52, 1, 10, 15, 0)  
+LUIGI_WAIT = (0, 50, 17, 13, 15, 0)  
+LUIGI_PCK = (0, 50, 33, 13, 15, 0)  
+LUIGI_BOSS = (0, 51, 50, 10, 14, 0)
+LUIGI_REST1 = (0, 50, 66, 13, 13, 0)
+LUIGI_REST2 = (0, 49, 83, 14, 12, 0)
 
 # Boss sprites
 BOSS_1 = (0, 32, 96, 16, 16, 0)
@@ -153,16 +153,16 @@ CONVEYOR_X_LEFT = STRUCT_X - CONVEYOR_LENGTH
 CONVEYOR_X_RIGHT = STRUCT_X + STRUCT_WIDTH_PX
 
 # Character & Platform positions
-LUIGI_X = 49
-MARIO_X = 190
+LUIGI_X = 50
+MARIO_X = 189
 
 # Machine position
 MACHINE_X = SCREEN_WIDTH - 20
 MACHINE_Y = SCREEN_HEIGHT - 24 
 
 # Machine Conveyor Dimensions
-MACHINE_CONV_LENGTH = 32 
-MACHINE_CONV_X = MACHINE_X - MACHINE_CONV_LENGTH
+CONVEYOR_0_LENGTH = 32 
+CONVEYOR_0_X = MACHINE_X - CONVEYOR_0_LENGTH
 
 # Truck position
 TRUCK_X = 15

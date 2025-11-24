@@ -11,10 +11,7 @@ class Game:
         
         pyxel.run(self.update, self.draw)
 
-    def update(self):
-        if pyxel.btnp(pyxel.KEY_Q):
-            pyxel.quit()
-            
+    def update(self):            
         self.board.update()
 
     def draw(self):

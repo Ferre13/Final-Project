@@ -1,5 +1,6 @@
 import pyxel
 import constants
+from characters import Character
 from truck import Truck
 from conveyor import Conveyor
 from platforms import Platform
@@ -8,19 +9,13 @@ from background import VerticalStructure, Machine, ExitSignal, Window, LevelSign
 class Board:
     def __init__(self, difficulty: str):
         self.difficulty = difficulty
-        self.floors = []
-        self.conveyors = []
-        self.platforms = []
         self.truck = Truck(constants.TRUCK_X, 0)
         
-        self.level_sign = LevelSign(self.difficulty, 4, constants.SCREEN_HEIGHT - 22)
+        # These are static elements, they dont change when the game restarts
         self.machine = Machine(constants.MACHINE_X, constants.MACHINE_Y)
-        self.exit_signal = None 
         self.windows = [Window(20, 15), Window(215, 35), Window(210, 45)]
-        self.door_x = 0
-        self.door_y = 0
 
-        self.init_level()
+        self.game_start()
 
     @property
     def conveyors(self) -> list:
@@ -52,7 +47,18 @@ class Board:
             raise TypeError("Platforms must be a list")
         self.__platforms = value
 
-    def init_level(self):
+    def game_start(self):
+        # Reset for a new game
+        self.conveyors = []
+        self.platforms = []
+
+        self.mario = Character("Mario", constants.MARIO_X + 1)
+        self.luigi = Character("Luigi", constants.LUIGI_X + 4)
+
+        # Create Level Sign
+        self.level_sign = LevelSign(self.difficulty, 4, constants.SCREEN_HEIGHT - 22)
+
+        # Set floors based on difficulty
         if self.difficulty == "EASY" or self.difficulty == "CRAZY":
             self.floors = constants.FLOORS_EASY_CRAZY
         elif self.difficulty == "MEDIUM":
@@ -62,123 +68,104 @@ class Board:
         else:
             self.floors = constants.FLOORS_EASY_CRAZY
 
-        # --- 1. CALCULATE COORDINATES ---
-        top_floor_y = min(self.floors)
+        # Calculate truck.y based on top floor and limit for vertical structure
+        # truck.y is used for the exit signal position as well
+        top_floor_y = self.floors[-1]
         self.truck.y = top_floor_y 
-        self.exit_signal = ExitSignal(2, self.truck.y - 10)
+        self.truck.reset()
 
-        # Ground Params
-        sprite_h = constants.FLOOR_SPRITE[4] # 2px
-        sprite_w = constants.FLOOR_SPRITE[3] # 14px
+        # Ground calculations
         ground_height_px = 11
         ground_start_y = constants.SCREEN_HEIGHT - ground_height_px
 
-        # --- 2. VERTICAL STRUCTURE ---
-        self.vertical_structure = VerticalStructure(
-            constants.STRUCT_X, 
-            2, 
-            top_floor_y, 
-            base_y=ground_start_y
-        )
+        # Create Exit Signal
+        self.exit_signal = ExitSignal(2, self.truck.y - 10)
+        # Vertical Structure
+        self.vertical_structure = VerticalStructure(constants.STRUCT_X, 2, top_floor_y, ground_start_y)
 
-        # --- 3. CONVEYORS & LADDERS ---
-        # We create these BEFORE the ground so they are drawn BEHIND it.
-        for i, y_pos in enumerate(self.floors):
+        # Create Conveyors and Platforms
+        # Enumerate returns index and value (0, FLOOR_Y_POSITIONS[0])
+        for index, y_pos in enumerate(self.floors):
+            # Change based on difficulty
             speed = constants.SLOW_SPEED
-            direction = 1 if i % 2 != 0 else -1
+
+            if index % 2 != 0:
+                plat_x = constants.MARIO_X
+            else:
+                plat_x = constants.LUIGI_X
+
+            self.platforms.append(Platform(plat_x, y_pos + 1, 1))
+
+            if index % 2 == 0:
+                direction = -1
+            else:
+                direction = 1
             
             # Conveyors
-            left_conv = Conveyor(
-                constants.CONVEYOR_X_LEFT, y_pos, constants.CONVEYOR_LENGTH, 
-                speed, direction, is_right_side=False 
-            )
-            self.conveyors.append(left_conv)
-
-            right_conv = Conveyor(
-                constants.CONVEYOR_X_RIGHT, y_pos, constants.CONVEYOR_LENGTH, 
-                speed, direction, is_right_side=True 
-            )
-            self.conveyors.append(right_conv)
+            self.conveyors.append(Conveyor(constants.CONVEYOR_X_LEFT, y_pos, constants.CONVEYOR_LENGTH, speed, direction, False))
+            self.conveyors.append(Conveyor(constants.CONVEYOR_X_RIGHT, y_pos, constants.CONVEYOR_LENGTH, speed, direction, True))
 
             # Machine Connection
-            if i == 0:
-                machine_conv = Conveyor(
-                    constants.MACHINE_CONV_X, y_pos, constants.MACHINE_CONV_LENGTH, 
-                    speed, direction, is_right_side=False 
-                )
-                self.conveyors.append(machine_conv)
+            if index == 0:
+                self.conveyors.append(Conveyor(constants.CONVEYOR_0_X, y_pos, constants.CONVEYOR_0_LENGTH, speed, direction, False))
+        
+        # Ground Calculations
+        sprite_h = constants.FLOOR_SPRITE[4]
+        sprite_w = constants.FLOOR_SPRITE[3]
 
-            # Platforms (The Ladders)
-            plat_y = y_pos - 3
-            if i % 2 != 0:
-                mario_plat = Platform(constants.MARIO_X, plat_y, 1, is_flipped=True)
-                self.platforms.append(mario_plat)
-            else:
-                luigi_plat = Platform(constants.LUIGI_X, plat_y, 1, is_flipped=False)
-                self.platforms.append(luigi_plat)
-
-        # --- 4. TRUCK FLOOR ---
-        truck_floor_y = self.truck.y + 16 
-        truck_floor_segments = 2
+        # Truck Platform
+        # Floor is 16px lower than the truck, accordint to truck height
+        truck_floor_y = self.truck.y + 16
+        truck_floor_height = 2
         truck_floor_width = 3
         
-        for i in range(truck_floor_segments):
-            y = truck_floor_y + (i * sprite_h)
-            p = Platform(0, y, truck_floor_width, is_flipped=False, sprite=constants.FLOOR_SPRITE)
-            self.platforms.append(p)
+        for height in range(truck_floor_height):
+            y = truck_floor_y + (height * sprite_h)
+            floor = Platform(0, y, truck_floor_width, constants.FLOOR_SPRITE)
+            self.platforms.append(floor)
 
-        # --- 5. BOSS & DOOR FLOORS ---
+        # Boss Platforms
+        # Floor is 2px below the boss y position
         boss_floor_y = constants.BOSS_Y + 2
         boss_floor_width = 2
         
-        boss_plat_left = Platform(
-            0, boss_floor_y, boss_floor_width, 
-            is_flipped=False, sprite=constants.FLOOR_SPRITE
-        )
+        boss_plat_left = Platform(0, boss_floor_y, boss_floor_width, constants.FLOOR_SPRITE)
         self.platforms.append(boss_plat_left)
 
         right_start_x = constants.SCREEN_WIDTH - (boss_floor_width * sprite_w)
-        boss_plat_right = Platform(
-            right_start_x, boss_floor_y, boss_floor_width, 
-            is_flipped=False, sprite=constants.FLOOR_SPRITE
-        )
+        boss_plat_right = Platform(right_start_x, boss_floor_y, boss_floor_width, constants.FLOOR_SPRITE)
         self.platforms.append(boss_plat_right)
 
 
-        # --- 6. GLOBAL GROUND ---
-        # Appended LAST so it is drawn LAST (on top of the ladder bottoms)
+        # Ground
         ground_rows = (ground_height_px + sprite_h - 1) // sprite_h
         sprites_per_row = (constants.SCREEN_WIDTH // sprite_w) + 1
         
-        for r in range(ground_rows):
-            y = ground_start_y + (r * sprite_h)
-            ground_plat = Platform(
-                0, y, sprites_per_row, 
-                is_flipped=False, sprite=constants.FLOOR_SPRITE
-            )
+        for each in range(ground_rows):
+            y = ground_start_y + (each * sprite_h)
+            ground_plat = Platform(0, y, sprites_per_row, constants.FLOOR_SPRITE)
             self.platforms.append(ground_plat)
 
     def update(self):
+        self.mario.update(self.floors)
+        self.luigi.update(self.floors)
+        if pyxel.btnp(pyxel.KEY_Q):
+            pyxel.quit()
         self.truck.update()
 
+    # Draw all elements
     def draw(self):
-        if self.vertical_structure:
-            self.vertical_structure.draw()
-        
-        self.level_sign.draw()
 
+        self.vertical_structure.draw()
+        self.level_sign.draw()
         for w in self.windows:
             w.draw()
-
         self.machine.draw()
-        
-        if self.exit_signal:
-            self.exit_signal.draw()
-
+        self.exit_signal.draw()
         for platform in self.platforms:
             platform.draw()
-
         for conv in self.conveyors:
             conv.draw()
-
+        self.mario.draw()
+        self.luigi.draw()
         self.truck.draw()

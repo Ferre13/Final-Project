@@ -3,13 +3,14 @@ import constants
 
 class Platform:
     """
-    This class represents the platforms for the characters to stand on.
+    This class represents the platforms created.
+    That platforms include the ones where the characters stand on,
+    the ground level, the truck platform and the boss platforms.
     """
-    def __init__(self, x: int, y: int, width: int, is_flipped: bool = False, sprite=constants.PLATFORM_SPRITE):
+    def __init__(self, x: int, y: int, width: int, sprite=constants.PLATFORM_SPRITE):
         self.x = x
         self.y = y
         self.width = width
-        self.is_flipped = is_flipped
         self.sprite = sprite
 
     @property
@@ -43,9 +44,7 @@ class Platform:
         """
         Draws the platform on the screen using its assigned sprite.
         """
-        img, u, v, w, h, colkey = self.sprite
+        w = self.sprite[3]
         
-        draw_w = -w if self.is_flipped else w
-
         for i in range(self.width):
-            pyxel.blt(self.x + i * abs(w), self.y, img, u, v, draw_w, h, colkey)
+            pyxel.blt(self.x + (i * w), self.y, *self.sprite)

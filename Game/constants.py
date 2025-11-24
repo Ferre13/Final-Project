@@ -5,7 +5,7 @@ import random
 
 # Screen size
 SCREEN_WIDTH = 256
-SCREEN_HEIGHT = 156
+SCREEN_HEIGHT = 144
 
 # Game states
 GAME_PLAYING = 1
@@ -60,22 +60,22 @@ PCK_LVL10_FALL = (0, 16, 144, 16, 16, 0)
 PCK_EXPLODE = (0, 0, 160, 16, 16, 0)  
 
 # Truck sprites
-TRUCK_EMPTY = (0, 64, 0, 48, 16, 0)
-TRUCK_1 = (0, 64, 16, 48, 16, 0)
-TRUCK_2 = (0, 64, 32, 48, 16, 0)
-TRUCK_3 = (0, 64, 48, 48, 16, 0)
-TRUCK_4 = (0, 64, 64, 48, 16, 0)
-TRUCK_5 = (0, 64, 80, 48, 16, 0)
-TRUCK_6 = (0, 64, 96, 48, 16, 0)
-TRUCK_7 = (0, 64, 112, 48, 16, 0)
-TRUCK_8 = (0, 64, 128, 48, 16, 0)
-TRUCK_FULL = (0, 64, 144, 48, 16, 0)
+TRUCK_EMPTY = (0, 64, 0, 32, 16, 0)
+TRUCK_1 = (0, 64, 16, 32, 16, 0)
+TRUCK_2 = (0, 64, 32, 32, 16, 0)
+TRUCK_3 = (0, 64, 48, 32, 16, 0)
+TRUCK_4 = (0, 64, 64, 32, 16, 0)
+TRUCK_5 = (0, 64, 80, 32, 16, 0)
+TRUCK_6 = (0, 64, 96, 32, 16, 0)
+TRUCK_7 = (0, 64, 112, 32, 16, 0)
+TRUCK_8 = (0, 64, 128, 32, 16, 0)
+TRUCK_FULL = (0, 64, 144, 32, 16, 0)
 
 # Conveyor sprite
 CONVEYOR_SPRITE = (0, 32, 154, 32, 4, 0)  
 LIFE_SPRITE = (0, 32, 112, 16, 16, 0)
-PLATFORM_SPRITE = (0, 7, 187, 25, 13, 0)
-PLATFORM_0_SPRITE = (1, 33, 34, 14, 2, 0)
+PLATFORM_SPRITE = (0, 15, 187, 17, 19, 0)
+PLATFORM_0_SPRITE = (1, 33, 34, 16, 2, 0)
 EXIT_SIGNAL_SPRITE = (0, 32, 128, 16, 7, 0)
 DOOR_CLOSED = (0, 32, 136, 16, 16, 0)
 DOOR_OPENING = (0, 48, 136, 16, 16, 0)
@@ -93,51 +93,70 @@ NUMBER_7 = (1, 2, 24, 4, 8, 0)
 NUMBER_8 = (1, 10, 24, 4, 8, 0)
 NUMBER_9 = (1, 2, 32, 4, 8, 0)
 
+# Level text sprites
+LEVEL_EASY = (0, 33, 160, 15, 5, 0)
+LEVEL_MEDIUM = (0, 32, 166, 21, 5, 0)
+LEVEL_EXTREME = (0, 32, 172, 27, 5, 0)
+LEVEL_CRAZY = (0, 32, 178, 19, 5, 0)
+
 VERTICAL_STRUCTURE_SPRITE = (1, 18, 17, 12, 35, 0)
 MACHINE_SPRITE = (1, 32, 17, 14, 13, 0)
 WINDOW_SPRITE = (1, 18, 2, 32, 12, 0)
 
 NUMBER_SPRITES = [NUMBER_0, NUMBER_1, NUMBER_2, NUMBER_3, NUMBER_4, NUMBER_5, NUMBER_6, NUMBER_7, NUMBER_8, NUMBER_9]
 
-# --- GAME SETTINGS ---
+# GAME SETTINGS
 
 # Distances
-CONVEYOR_Y_START = 140 
-CONVEYOR_DISTANCE = 15
+CONVEYOR_Y_START = SCREEN_HEIGHT - 16
+CONVEYOR_DISTANCE = 12
 
-# Floors (Bottom to Top)
-FLOORS_EASY = [CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE) for i in range(5)]
-FLOORS_CRAZY = FLOORS_EASY
-FLOORS_MEDIUM = [CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE) for i in range(7)]
-FLOORS_EXTREME = [CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE) for i in range(9)]
+# Floors
+NUM_EASY_CRAZY = 5
+NUM_MEDIUM = 7
+NUM_EXTREME = 9
 
-# Central Structure Logic
+FLOORS_EASY_CRAZY = []
+for floors in range(NUM_EASY_CRAZY):
+    floor = CONVEYOR_Y_START - (floors * CONVEYOR_DISTANCE)
+    FLOORS_EASY_CRAZY.append(floor)
+
+FLOORS_MEDIUM = []
+for floors in range(NUM_MEDIUM):
+    floor = CONVEYOR_Y_START - (floors * CONVEYOR_DISTANCE)
+    FLOORS_MEDIUM.append(floor)
+
+FLOORS_EXTREME = []
+for floors in range(NUM_EXTREME):
+    floor = CONVEYOR_Y_START - (floors * CONVEYOR_DISTANCE)
+    FLOORS_EXTREME.append(floor)
+
+# Vertical Structure Logic
 CENTER_SCREEN = SCREEN_WIDTH // 2  # 128
 STRUCT_WIDTH_PX = 24 
 STRUCT_X = CENTER_SCREEN - (STRUCT_WIDTH_PX // 2)
 
 # Conveyor Dimensions (Split)
-CONVEYOR_LENGTH = 48 
+CONVEYOR_LENGTH = int(CONVEYOR_SPRITE[3] * 1.5)
 CONVEYOR_X_LEFT = STRUCT_X - CONVEYOR_LENGTH
 CONVEYOR_X_RIGHT = STRUCT_X + STRUCT_WIDTH_PX
 
-# Conveyor ends at approx 68 (Left side) and 188 (Right side)
-# We reduced gap to 4px. Platform width is 25px.
-LUIGI_X = 39
-MARIO_X = 192
+# Conveyor ends at approx 68 (Left) and 188 (Right)
+# Gap of 4px. Platform width is 21px.
+# Luigi (Left): 68 (End) - 4 (Gap) - 21 (Width) = 43
+LUIGI_X = 49
+MARIO_X = 190
 
-# Machine & Extra Conveyor
-MACHINE_X = SCREEN_WIDTH - 20 # 236
-# Moved 1px lower (156 - 24 = 132)
+# Machine & Conveyor0
+MACHINE_X = SCREEN_WIDTH - 20
 MACHINE_Y = SCREEN_HEIGHT - 24 
 
 # The conveyor connected to the machine
-MACHINE_CONV_LENGTH = 24
+MACHINE_CONV_LENGTH = 32 
 MACHINE_CONV_X = MACHINE_X - MACHINE_CONV_LENGTH
 
-# Truck position (TOP LEFT)
-TRUCK_X = 5
-TRUCK_Y = 20  # Default fallback, actual Y is calculated dynamically
+# Truck position
+TRUCK_X = 15
 
 # Boss positions
 BOSS_Y = 60

@@ -5,7 +5,8 @@ class Conveyor:
     """ 
     This class represents the conveyor belt in the game. 
     """
-    def __init__(self, x: int, y: int, length: int, speed: float, direction: int, is_right_side: bool = False):
+    def __init__(self, x: int, y: int, length: int, speed: float, 
+                 direction: int, is_right_side: bool):
         self.x = x
         self.y = y
         self.length = length
@@ -58,46 +59,57 @@ class Conveyor:
             raise ValueError("Direction must be -1 or 1")
         self.__direction = value
 
+    @property
+    def is_right_side(self) -> bool:
+        return self.__is_right_side
+    @is_right_side.setter
+    def is_right_side(self, value: bool):
+        if not isinstance(value, bool):
+            raise TypeError("is_right_side must be a boolean")
+        self.__is_right_side = value
+
     def draw(self):
         """
         Draws the conveyor belt.
-        Left Side: Full Sprite -> Left Half Remainder
-        Right Side: Right Half Remainder -> Full Sprite
+        Left Side: Full Sprite + Left Half pixels left
+        Right Side: Right Half pixels left + Full Sprite
         """
         sprite_width = constants.CONVEYOR_SPRITE[3]
+        # How many full sprites for the length
         num_full_sprites = self.length // sprite_width
-        remainder = self.length % sprite_width
+        # How many pixels are not covered by full sprites
+        pixels_left = self.length % sprite_width
         
-        # Unpack sprite data
+        # This is for drawing the remainder part correctly
         img, u, v, w, h, colkey = constants.CONVEYOR_SPRITE
 
         current_x = self.x
 
         if self.is_right_side:
-            # --- RIGHT SIDE DRAWING [Half -> Full] ---
+            # Right (Half + Full)
+            # Draw Remainder (The right half of the sprite)
+            if pixels_left > 0:
+                # We have to draw only the right part of the sprite
+                # We go to the end of the sprite (u + w)
+                # Then go back as many pixels as we want to see (pixels_left)
+                starting_u = u + w - pixels_left
+
+                pyxel.blt(current_x, self.y, img, starting_u, v, pixels_left, h, colkey)
+                current_x += pixels_left
             
-            # 1. Draw Remainder FIRST (The "Right Half" of the sprite)
-            if remainder > 0:
-                # We start reading the texture from (u + width - remainder) to get the right side
-                # e.g. if width 32, rem 16. Start at 16.
-                start_u = u + (w - remainder)
-                pyxel.blt(current_x, self.y, img, start_u, v, remainder, h, colkey)
-                current_x += remainder
-            
-            # 2. Draw Full Sprites
-            for i in range(num_full_sprites):
+            # Draw Full Sprites
+            for sprite in range(num_full_sprites):
                 pyxel.blt(current_x, self.y, *constants.CONVEYOR_SPRITE)
                 current_x += sprite_width
 
         else:
-            # --- LEFT SIDE DRAWING [Full -> Half] (Standard) ---
-            
-            # 1. Draw Full Sprites
-            for i in range(num_full_sprites):
+            # Left (Full + Half)
+            # Draw Full Sprites
+            for sprite in range(num_full_sprites):
                 pyxel.blt(current_x, self.y, *constants.CONVEYOR_SPRITE)
                 current_x += sprite_width
             
-            # 2. Draw Remainder LAST (The "Left Half" of the sprite)
-            if remainder > 0:
-                # Draw standard from u=0, but limited width
-                pyxel.blt(current_x, self.y, img, u, v, remainder, h, colkey)
+            # Draw Remainder (The left half of the sprite)
+            if pixels_left > 0:
+                # Width is limited to pixels_left
+                pyxel.blt(current_x, self.y, img, u, v, pixels_left, h, colkey)

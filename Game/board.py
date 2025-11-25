@@ -74,7 +74,7 @@ class Board:
         self.luigi = Character("Luigi", constants.LUIGI_X + 3)
 
         # Create Level Sign
-        self.level_sign = LevelSign(self.difficulty, 4, constants.SCREEN_HEIGHT - 22)
+        self.level_sign = LevelSign(self.difficulty, 4, constants.SCREEN_HEIGHT - 18)
 
         self.spawn_timer = 0
 
@@ -131,21 +131,21 @@ class Board:
                 direction = 1
             
             # Conveyors
-            self.conveyors.append(Conveyor(constants.CONVEYOR_X_LEFT, y_pos, constants.CONVEYOR_LENGTH, speed, direction, False))
-            self.conveyors.append(Conveyor(constants.CONVEYOR_X_RIGHT, y_pos, constants.CONVEYOR_LENGTH, speed, direction, True))
-
+            self.conveyors.append(
+                Conveyor(constants.CONVEYOR_X_START, y_pos, constants.CONVEYOR_SEGMENTS, speed, direction)
+            )
             # Machine Connection
             if index == 0:
-                self.conveyors.append(Conveyor(constants.CONVEYOR_0_X, y_pos, constants.CONVEYOR_0_LENGTH, speed, direction, False))
+                self.conveyors.append(Conveyor(constants.CONVEYOR_0_X, y_pos, 1, speed, direction))
 
-            if direction == -1: # Left (Even floors, 0, 2...)
-                start_x = constants.CONVEYOR_X_RIGHT + constants.CONVEYOR_LENGTH
-                end_x = constants.CONVEYOR_X_LEFT
-                handler_name = "Luigi" # Moves Left -> Luigi picks up
-            else: # Right (Odd floors, 1, 3...)
-                start_x = constants.CONVEYOR_X_LEFT
-                end_x = constants.CONVEYOR_X_RIGHT + constants.CONVEYOR_LENGTH
-                handler_name = "Mario" # Moves Right -> Mario picks up
+            if direction == -1: # Left (Luigi receives)
+                start_x = constants.CONVEYOR_X_START + constants.CONVEYOR_TOTAL_WIDTH_PX
+                end_x = constants.CONVEYOR_X_START
+                handler_name = "Luigi"
+            else: # Right (Mario receives)
+                start_x = constants.CONVEYOR_X_START
+                end_x = constants.CONVEYOR_X_START + constants.CONVEYOR_TOTAL_WIDTH_PX
+                handler_name = "Mario"
             
             self.route_segments.append({
                 'type': 'interact',
@@ -165,7 +165,7 @@ class Board:
         # Floor is 16px lower than the truck, accordint to truck height
         truck_floor_y = self.truck.y + 16
         truck_floor_height = 2
-        truck_floor_width = 3
+        truck_floor_width = 5
         
         for height in range(truck_floor_height):
             y = truck_floor_y + (height * sprite_h)
@@ -175,7 +175,7 @@ class Board:
         # Boss Platforms
         # Floor is 2px below the boss y position
         boss_floor_y = constants.BOSS_Y
-        boss_floor_width = 2
+        boss_floor_width = 4
         
         boss_plat_left = Platform(0, boss_floor_y, boss_floor_width, constants.FLOOR_SPRITE)
         self.platforms.append(boss_plat_left)

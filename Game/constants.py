@@ -94,7 +94,7 @@ LIFE_SPRITE = (0, 32, 112, 16, 16, 0)
 
 # Platform & Floor sprites
 PLATFORM_SPRITE = (0, 15, 187, 17, 19, 0)
-FLOOR_SPRITE = (1, 33, 34, 16, 2, 0)
+FLOOR_SPRITE = (1, 33, 34, 8, 2, 0)
 
 # Door & Exit Signal sprites
 EXIT_SIGNAL_SPRITE = (0, 32, 128, 16, 7, 0)
@@ -165,25 +165,30 @@ CENTER_SCREEN = SCREEN_WIDTH // 2
 STRUCT_WIDTH_PX = VERTICAL_STRUCTURE_SPRITE[3] * 2
 STRUCT_X = CENTER_SCREEN - (STRUCT_WIDTH_PX // 2)
 
-# Conveyor Dimensions (Split)
-CONVEYOR_LENGTH = int(CONVEYOR_SPRITE[3] * 1.5)
-CONVEYOR_X_LEFT = STRUCT_X - CONVEYOR_LENGTH
-CONVEYOR_X_RIGHT = STRUCT_X + STRUCT_WIDTH_PX
+CONVEYOR_SEGMENTS = 4  # Repeat 4 times
+CONVEYOR_SPRITE_W = CONVEYOR_SPRITE[3] # 32px
+
+# Calculate total pixel width for route calculations
+CONVEYOR_TOTAL_WIDTH_PX = CONVEYOR_SEGMENTS * CONVEYOR_SPRITE_W
+
+# Calculate Start X to center the 4 segments on the screen/structure
+# Formula: Center Screen - (Total Width / 2)
+CONVEYOR_X_START = CENTER_SCREEN - (CONVEYOR_TOTAL_WIDTH_PX // 2)
 
 # Character & Platform positions
-LUIGI_X = 50
-MARIO_X = 189
+LUIGI_X = 45
+MARIO_X = 194
 
 # Machine position
-MACHINE_X = SCREEN_WIDTH - 20
+MACHINE_X = SCREEN_WIDTH - 14
 MACHINE_Y = SCREEN_HEIGHT - 24 
 
 # Machine Conveyor Dimensions
-CONVEYOR_0_LENGTH = 32 
+CONVEYOR_0_LENGTH = 32
 CONVEYOR_0_X = MACHINE_X - CONVEYOR_0_LENGTH
 
 # Truck position
-TRUCK_X = 15
+TRUCK_X = 8
 
 # Boss positions
 # Watch out

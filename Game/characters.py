@@ -18,6 +18,9 @@ class Character:
         self.original_x = x 
         self.punishment_timer = 0
         
+        # New: Limit for vertical movement (Set by Board)
+        self.max_floor_index = 10 
+        
         # Logical dimensions (Hitbox) - Read Only
         self.__width = 12
         self.__height = 16
@@ -38,7 +41,6 @@ class Character:
     def x(self) -> int: return self.__x
     @x.setter
     def x(self, value):
-        # Relaxed type check for physics
         if not isinstance(value, (int, float)): raise TypeError("x must be a number")
         self.__x = value
 
@@ -60,12 +62,12 @@ class Character:
 
     @property
     def height(self) -> int:
-        """ Returns the logical hitbox height. """
         return self.__height
 
-    def move_up(self, max_floors: int):
+    def move_up(self):
         next_floor = self.floor + 2
-        if next_floor < max_floors:
+        # Check against the specific limit for this game mode
+        if next_floor <= self.max_floor_index:
             self.floor = next_floor
 
     def move_down(self):
@@ -82,29 +84,20 @@ class Character:
         if self.name == "Mario": self.x = constants.PUNISH_MARIO_X
         else: self.x = constants.PUNISH_LUIGI_X
         
-        # Here we use the specific sprite height for the boss state
         boss_sprite_h = self.sprites[self.STATE_BOSS][4]
         self.y = (constants.BOSS_Y) - boss_sprite_h
 
     def exit_punishment_mode(self):
-        # Removed conveyors_list argument
         self.state = self.STATE_STATIC
         self.x = self.original_x
         self.update()
 
     def update(self):
-        # Removed conveyors_list argument
         if self.state == self.STATE_BOSS:
             return
         
-        # Input handling needs to know max floors. 
-        # For simplicity in this decoupled version, we assume a safe max (e.g., 10) 
-        # or we could pass just the INT limit, but logic is cleaner if Board checks limits.
-        # However, to keep standard movement here:
-        # We assume constants.FLOOR_Y_LEVELS has enough entries.
         if pyxel.btnp(self.key_up):
-            # We use the length of the constant list as the limit
-            self.move_up(len(constants.FLOOR_Y_LEVELS))
+            self.move_up() # No arguments needed now
         elif pyxel.btnp(self.key_down):
             self.move_down()
 
@@ -112,12 +105,10 @@ class Character:
         current_sprite = self.sprites[self.state]
         sprite_h = current_sprite[4]
         
-        # --- NEW LOGIC: Use Constant List ---
         # Ensure we don't go out of index
         safe_floor = min(self.floor, len(constants.FLOOR_Y_LEVELS) - 1)
         target_floor_y = constants.FLOOR_Y_LEVELS[safe_floor]
         
-        # Position is floor level minus the sprite height
         self.y = target_floor_y - sprite_h
 
     def draw(self):
@@ -127,5 +118,4 @@ class Character:
         if is_mario_ground_static:
              draw_w = -w
         
-        # Cast to int for drawing
         pyxel.blt(int(self.x), int(self.y), img, u, v, draw_w, h, colkey)

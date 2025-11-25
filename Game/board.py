@@ -1,4 +1,5 @@
 import pyxel
+import random
 import constants
 from characters import Character
 from truck import Truck
@@ -29,6 +30,8 @@ class Board:
         self.punishment_timer = 0
         self.punished_char = None
         self.active_door = None
+        
+        self.floor_max_index = 0
 
     def create_background(self):
         self.windows = [Window(20, 15), Window(215, 35), Window(215, 45)]
@@ -46,6 +49,8 @@ class Board:
             floor_y_positions = constants.FLOORS_EXTREME
         else: 
             floor_y_positions = constants.FLOORS_EASY_CRAZY
+            
+        self.floor_max_index = len(floor_y_positions)
 
         # 2. Setup Truck position
         self.truck = Truck(constants.TRUCK_X, 0)
@@ -63,18 +68,36 @@ class Board:
         self.conveyors = []
         self.platforms = []
 
-        # Machine Conveyor (Always the first one, index 0)
-        self.conveyors.append(Conveyor(constants.CONVEYOR_0_X, floor_y_positions[0], 1, constants.SLOW_SPEED, -1))
+        # Machine Conveyor (Always 1x Speed)
+        self.conveyors.append(Conveyor(constants.CONVEYOR_0_X, floor_y_positions[0], 1, 1.0, -1))
         
         # Main Loops for Conveyors
         for index, y_pos in enumerate(floor_y_positions):
-            if index % 2 == 0: direction = -1
-            else: direction = 1
+            # Direction Logic
+            if index % 2 == 0: direction = -1 # Odd (1st, 3rd...) -> Goes Left
+            else: direction = 1 # Even (2nd, 4th...) -> Goes Right
             
+            # Platform Logic
             plat_x = constants.MARIO_X if index % 2 != 0 else constants.LUIGI_X
             self.platforms.append(Platform(plat_x, y_pos + 2, 1))
-            # Start conveyors from index 1 logic (index 0 is machine)
-            self.conveyors.append(Conveyor(constants.CONVEYOR_X_START, y_pos, constants.CONVEYOR_SEGMENTS, constants.SLOW_SPEED, direction))
+            
+            # --- CORRECT SPEED CALCULATION ---
+            # Index 0 is the first belt in the loop (Conveyor 1, Odd)
+            is_odd_belt = (index % 2 == 0)
+            
+            speed = 1.0 # Default (EASY)
+            
+            if self.difficulty == "MEDIUM":
+                if is_odd_belt: speed = 1.5
+                else: speed = 1.0
+            elif self.difficulty == "EXTREME":
+                if is_odd_belt: speed = 2.0
+                else: speed = 1.5
+            elif self.difficulty == "CRAZY":
+                # Random float between 1.0 and 2.0 for EACH belt
+                speed = random.uniform(1.0, 2.0)
+            
+            self.conveyors.append(Conveyor(constants.CONVEYOR_X_START, y_pos, constants.CONVEYOR_SEGMENTS, speed, direction))
 
         # 5. Create Extra Platforms
         self.create_extra_platforms(ground_start_y)
@@ -105,6 +128,10 @@ class Board:
     def create_actors(self):
         self.mario = Character("Mario", constants.MARIO_X + 2)
         self.luigi = Character("Luigi", constants.LUIGI_X + 3)
+        
+        self.mario.max_floor_index = self.floor_max_index
+        self.luigi.max_floor_index = self.floor_max_index
+        
         self.boss = Boss()
         
         door_h = 16 
@@ -113,7 +140,6 @@ class Board:
         self.door_right = Door(constants.BOSS_MARIO, door_y)
 
     # --- PROPERTIES ---
-
     @property
     def conveyors(self) -> list: return self.__conveyors
     @conveyors.setter
@@ -140,71 +166,54 @@ class Board:
         self.__platforms = value
 
     # --- GAME UPDATE LOGIC ---
-
     def spawn_package(self):
         if len(self.packages) == 0: self.spawn_timer = 999
         self.spawn_timer += 1
         if self.spawn_timer > 180:
-            # Create package at conveyor 0 (Machine)
             new_pck = Package(self.difficulty, self.conveyors[0], 0)
             self.packages.append(new_pck)
             self.spawn_timer = 0
 
     def update_packages(self):
-        """
-        MANAGER LOGIC:
-        Iterates over packages, moves them, and checks collisions with the world.
-        """
         for p in self.packages[:]:
-            # 1. Move the package (Passive update)
             p.update()
 
-            # 2. Check Game Over / Lost Package (Fell off screen)
             if p.y > constants.SCREEN_HEIGHT:
                 self.packages.remove(p)
                 self.failures += 1
-                
-                # Determine culprit based on which side the package fell
                 culprit = "Mario" if p.x > constants.CENTER_SCREEN else "Luigi"
                 self.trigger_failure(culprit)
                 continue
 
-            # 3. Check Interactions (Only if moving on a belt)
             if p.status == Package.STATE_MOVING:
                 conv = p.current_conveyor
                 reached_end = False
 
-                # Check boundaries based on direction
                 if conv.direction == 1 and p.x >= conv.end_x:
-                    p.x = conv.end_x # Clamp position
+                    p.x = conv.end_x 
                     reached_end = True
                 elif conv.direction == -1 and p.x <= conv.x:
-                    p.x = conv.x # Clamp position
+                    p.x = conv.x 
                     reached_end = True
 
                 if reached_end:
-                    # LOGIC: Is a character on this floor to pick it up?
                     character_present = False
                     if self.mario.floor == p.floor_index: character_present = True
                     if self.luigi.floor == p.floor_index: character_present = True
 
                     if character_present:
-                        # Success! Move to next step.
                         next_idx = p.floor_index + 1
                         
                         if next_idx < len(self.conveyors):
-                            # Jump to next conveyor
                             p.advance_to_conveyor(self.conveyors[next_idx])
                             self.score += 1 
                         else:
-                            # Delivered to Truck
                             self.truck.receive_package()
                             self.score += 1 
                             if self.truck.packages_count == 8:
                                 self.score += 10 
                             self.packages.remove(p)
                     else:
-                        # Failed to catch -> Fall
                         p.status = Package.STATE_FALLING
 
     def trigger_failure(self, character_name: str):
@@ -218,8 +227,6 @@ class Board:
         self.active_door.open()
 
     def update(self):
-        # Developer Cheats REMOVED
-        
         self.door_left.update()
         self.door_right.update()
 
@@ -227,7 +234,7 @@ class Board:
             if self.active_door.state == "open" and not self.boss.active:
                 self.boss.appear(self.punished_char.name)
                 self.punished_char.enter_punishment_mode()
-                self.punishment_timer = 150 
+                self.punishment_timer = 60 
             if self.boss.active:
                 self.boss.update()
                 self.punishment_timer -= 1
@@ -235,14 +242,12 @@ class Board:
                     self.is_punishing = False
                     self.boss.disappear()
                     self.active_door.close()
-                    # Character exits punishment
                     self.punished_char.exit_punishment_mode()
                     self.punished_char = None
                     self.active_door = None
         else:
             self.spawn_package()
             self.update_packages() 
-            
             self.mario.update()
             self.luigi.update()
             self.truck.update()

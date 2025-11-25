@@ -42,26 +42,35 @@ BOSS_2 = (0, 48, 96, 16, 16, 0)
 
 # Package sprites
 PCK_LVL1 = (0, 3, 5, 11, 6, 0)  
-PCK_LVL1_FALL = (0, 16, 0, 11, 16, 0)  
-PCK_LVL2 = (0, 0, 16, 11, 6, 0)  
-PCK_LVL2_FALL = (0, 16, 16, 16, 16, 0)  
-PCK_LVL3 = (0, 0, 32, 11, 6, 0)  
-PCK_LVL3_FALL = (0, 16, 32, 16, 16, 0)  
-PCK_LVL4 = (0, 0, 48, 11, 6, 0)  
-PCK_LVL4_FALL = (0, 16, 48, 16, 16, 0) 
-PCK_LVL5 = (0, 0, 64, 11, 6, 0)  
-PCK_LVL5_FALL = (0, 16, 64, 16, 16, 0)  
-PCK_LVL6 = (0, 0, 80, 11, 6, 0)  
-PCK_LVL6_FALL = (0, 16, 80, 16, 16, 0)  
-PCK_LVL7 = (0, 0, 96, 11, 6, 0)  
-PCK_LVL7_FALL = (0, 16, 96, 16, 16, 0)  
-PCK_LVL8 = (0, 0, 112, 11, 6, 0)  
-PCK_LVL8_FALL = (0, 16, 112, 16, 16, 0)  
-PCK_LVL9 = (0, 0, 128, 11, 6, 0)  
-PCK_LVL9_FALL = (0, 16, 128, 16, 16, 0)  
-PCK_LVL10 = (0, 0, 144, 11, 6, 0)  
-PCK_LVL10_FALL = (0, 16, 144, 16, 16, 0)  
+PCK_LVL1_FALL = (0, 17, 4, 10, 12, 0)  
+PCK_LVL2 = (0, 3, 21, 11, 6, 0)  
+PCK_LVL2_FALL = (0, 17, 20, 10, 12, 0)  
+PCK_LVL3 = (0, 3, 36, 11, 6, 0)  
+PCK_LVL3_FALL = (0, 17, 36, 10, 12, 0)  
+PCK_LVL4 = (0, 3, 52, 11, 6, 0)  
+PCK_LVL4_FALL = (0, 17, 52, 10, 12, 0) 
+PCK_LVL5 = (0, 3, 68, 11, 6, 0)  
+PCK_LVL5_FALL = (0, 17, 68, 10, 12, 0)  
+PCK_LVL6 = (0, 3, 84, 11, 6, 0)  
+PCK_LVL6_FALL = (0, 17, 84, 10, 12, 0)  
+PCK_LVL7 = (0, 3, 100, 11, 6, 0)  
+PCK_LVL7_FALL = (0, 17, 100, 10, 12, 0)  
+PCK_LVL8 = (0, 3, 116, 11, 6, 0)  
+PCK_LVL8_FALL = (0, 17, 116, 10, 12, 0)  
+PCK_LVL9 = (0, 3, 132, 11, 6, 0)  
+PCK_LVL9_FALL = (0, 17, 132, 10, 12, 0)  
+PCK_LVL10 = (0, 3, 148, 11, 6, 0)  
+PCK_LVL10_FALL = (0, 17, 148, 10, 12, 0)  
 PCK_EXPLODE = (0, 0, 160, 16, 16, 0)  
+
+PCK_EASY_SPRITES = [PCK_LVL1, PCK_LVL1_FALL, PCK_LVL3, PCK_LVL3_FALL, PCK_LVL5, PCK_LVL5_FALL, 
+                    PCK_LVL7, PCK_LVL7_FALL, PCK_LVL9, PCK_LVL9_FALL, PCK_LVL10, PCK_LVL10_FALL]
+PCK_CRAZY_SPRITES = PCK_EASY_SPRITES
+PCK_MEDIUM_SPRITES = [PCK_LVL1, PCK_LVL1_FALL, PCK_LVL2, PCK_LVL2_FALL, PCK_LVL3, PCK_LVL3_FALL, PCK_LVL5, PCK_LVL5_FALL,
+                      PCK_LVL7, PCK_LVL7_FALL, PCK_LVL8, PCK_LVL8_FALL, PCK_LVL9, PCK_LVL9_FALL, PCK_LVL10, PCK_LVL10_FALL]
+PCK_EXTREME_SPRITES = [PCK_LVL1, PCK_LVL1_FALL, PCK_LVL2, PCK_LVL2_FALL, PCK_LVL3, PCK_LVL3_FALL, PCK_LVL4, PCK_LVL4_FALL,
+                       PCK_LVL5, PCK_LVL5_FALL, PCK_LVL6, PCK_LVL6_FALL, PCK_LVL7, PCK_LVL7_FALL, PCK_LVL8, PCK_LVL8_FALL,
+                       PCK_LVL9, PCK_LVL9_FALL, PCK_LVL10, PCK_LVL10_FALL]
 
 # Truck sprites
 TRUCK_EMPTY = (0, 64, 0, 32, 16, 0)
@@ -116,8 +125,8 @@ LEVEL_MEDIUM = (0, 32, 166, 21, 5, 0)
 LEVEL_EXTREME = (0, 32, 172, 27, 5, 0)
 LEVEL_CRAZY = (0, 32, 178, 19, 5, 0)
 
-# Vertical Structure sprite
-VERTICAL_STRUCTURE_SPRITE = (1, 18, 17, 12, 35, 0)
+# Vertical Structure sprite. colkey 1 to block things behind it
+VERTICAL_STRUCTURE_SPRITE = (1, 18, 17, 12, 35, 1)
 
 # Machine sprite
 MACHINE_SPRITE = (1, 32, 17, 14, 13, 0)
@@ -178,7 +187,7 @@ TRUCK_X = 15
 
 # Boss positions
 # Watch out
-BOSS_Y = MACHINE_Y - 7
+BOSS_Y = MACHINE_Y - 3
 BOSS_MARIO = SCREEN_WIDTH - 16  # Right Margin
 BOSS_LUIGI = 0                  # Left Margin
 

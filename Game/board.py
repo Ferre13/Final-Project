@@ -7,6 +7,7 @@ from platforms import Platform
 from background import VerticalStructure, Machine, ExitSignal, Window, LevelSign
 from boss import Boss
 from door import Door
+from package import Package
 
 class Board:
     def __init__(self, difficulty: str):
@@ -18,7 +19,7 @@ class Board:
         self.windows = [Window(20, 15), Window(215, 35), Window(215, 45)]
         self.boss = Boss()
         
-        door_y = (constants.BOSS_Y + 2) - 16
+        door_y = (constants.BOSS_Y) - 16
         self.door_left = Door(constants.BOSS_LUIGI, door_y)
         self.door_right = Door(constants.BOSS_MARIO, door_y)
 
@@ -26,6 +27,10 @@ class Board:
         self.punishment_timer = 0
         self.punished_char = None
         self.active_door = None
+        self.score = 0
+        self.failures = 0
+
+
         self.game_start()
 
     @property
@@ -62,12 +67,16 @@ class Board:
         # Reset for a new game
         self.conveyors = []
         self.platforms = []
+        self.packages = []
+        self.route_segments = []
 
         self.mario = Character("Mario", constants.MARIO_X + 2)
         self.luigi = Character("Luigi", constants.LUIGI_X + 3)
 
         # Create Level Sign
         self.level_sign = LevelSign(self.difficulty, 4, constants.SCREEN_HEIGHT - 22)
+
+        self.spawn_timer = 0
 
         # Set floors based on difficulty
         if self.difficulty == "EASY" or self.difficulty == "CRAZY":
@@ -82,7 +91,7 @@ class Board:
         # Calculate truck.y based on top floor and limit for vertical structure
         # truck.y is used for the exit signal position as well
         top_floor_y = self.floors[-1]
-        self.truck.y = top_floor_y 
+        self.truck.y = top_floor_y - 5
         self.truck.reset()
 
         # Ground calculations
@@ -94,10 +103,19 @@ class Board:
         # Vertical Structure
         self.vertical_structure = VerticalStructure(constants.STRUCT_X, 2, top_floor_y, ground_start_y)
 
+        self.route_segments.append({
+            'type': 'interact', # Mario must pick it up here (Horizontal)
+            'start_x': constants.CONVEYOR_0_X + 20,
+            'start_y': self.floors[0],
+            'end_x': constants.CONVEYOR_0_X, # End of machine belt
+            'direction': -1,
+            'floor_index': 0, # Handled by Mario
+            'handler': "Mario"
+        })
+
         # Create Conveyors and Platforms
         # Enumerate returns index and value (0, FLOOR_Y_POSITIONS[0])
         for index, y_pos in enumerate(self.floors):
-            # Change based on difficulty
             speed = constants.SLOW_SPEED
 
             if index % 2 != 0:
@@ -119,6 +137,25 @@ class Board:
             # Machine Connection
             if index == 0:
                 self.conveyors.append(Conveyor(constants.CONVEYOR_0_X, y_pos, constants.CONVEYOR_0_LENGTH, speed, direction, False))
+
+            if direction == -1: # Left (Even floors, 0, 2...)
+                start_x = constants.CONVEYOR_X_RIGHT + constants.CONVEYOR_LENGTH
+                end_x = constants.CONVEYOR_X_LEFT
+                handler_name = "Luigi" # Moves Left -> Luigi picks up
+            else: # Right (Odd floors, 1, 3...)
+                start_x = constants.CONVEYOR_X_LEFT
+                end_x = constants.CONVEYOR_X_RIGHT + constants.CONVEYOR_LENGTH
+                handler_name = "Mario" # Moves Right -> Mario picks up
+            
+            self.route_segments.append({
+                'type': 'interact',
+                'start_x': start_x,
+                'start_y': y_pos,
+                'end_x': end_x,
+                'direction': direction,
+                'floor_index': index, # Matches character floor index
+                'handler': handler_name
+            })
         
         # Ground Calculations
         sprite_h = constants.FLOOR_SPRITE[4]
@@ -137,7 +174,7 @@ class Board:
 
         # Boss Platforms
         # Floor is 2px below the boss y position
-        boss_floor_y = constants.BOSS_Y + 2
+        boss_floor_y = constants.BOSS_Y
         boss_floor_width = 2
         
         boss_plat_left = Platform(0, boss_floor_y, boss_floor_width, constants.FLOOR_SPRITE)
@@ -156,6 +193,29 @@ class Board:
             y = ground_start_y + (each * sprite_h)
             ground_plat = Platform(0, y, sprites_per_row, constants.FLOOR_SPRITE)
             self.platforms.append(ground_plat)
+
+    def spawn_package(self):
+        if len(self.packages) == 0: 
+            self.spawn_timer = 999
+        self.spawn_timer += 1
+        if self.spawn_timer > 180:
+            new_pck = Package(self.difficulty, self.route_segments)
+            self.packages.append(new_pck)
+            self.spawn_timer = 0
+
+    def update_packages(self):
+        for p in self.packages[:]: 
+            p.update()
+            
+            # AUTO-ADVANCE (Tracing Route)
+            # No Boss logic here, just movement.
+            if p.status == p.STATE_WAITING:
+                p.advance()
+
+            # TRUCK DELIVERY
+            if p.current_segment_index >= len(self.route_segments):
+                self.truck.add_package()
+                self.packages.remove(p)
 
     def trigger_failure(self, character_name: str):
         """ Begins the Boss Punishment Sequence """
@@ -203,6 +263,8 @@ class Board:
                     self.active_door = None
         else:
             # Normal Game Loop
+            self.spawn_package()
+            self.update_packages()
             self.mario.update(self.floors)
             self.luigi.update(self.floors)
             self.truck.update()
@@ -213,8 +275,6 @@ class Board:
     # Draw all elements
     def draw(self):
 
-        self.vertical_structure.draw()
-        self.level_sign.draw()
         for w in self.windows:
             w.draw()
         self.machine.draw()
@@ -227,6 +287,12 @@ class Board:
             platform.draw()
         for conv in self.conveyors:
             conv.draw()
+
+        for p in self.packages:
+            p.draw()
+        self.vertical_structure.draw()
+        self.level_sign.draw()
+
         self.mario.draw()
         self.luigi.draw()
         self.truck.draw()

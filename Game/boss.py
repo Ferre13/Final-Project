@@ -12,7 +12,7 @@ class Boss:
         self.x = 0
         
         # Floor Y is (BOSS_Y + 2). Boss sprite height is 16.
-        self.y = (constants.BOSS_Y + 2) - 16
+        self.y = (constants.BOSS_Y) - 16
         
         self.animation_frame = 0
         

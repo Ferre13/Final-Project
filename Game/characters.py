@@ -89,7 +89,7 @@ class Character:
         # Set Y to the Boss Floor level
         # Boss floor is at constants.BOSS_Y + 2. Character stands on top.
         # Height logic: (Floor_Y) - Sprite_Height
-        self.y = (constants.BOSS_Y + 2) - self.sprites[self.STATE_BOSS][4]
+        self.y = (constants.BOSS_Y) - self.sprites[self.STATE_BOSS][4]
 
     def exit_punishment_mode(self, original_floors_list: list):
         """ Returns character to normal gameplay """

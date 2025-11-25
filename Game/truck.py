@@ -14,30 +14,26 @@ class Truck:
         self.__width = 32
         self.__height = 16
 
-    # ... [Keep x and y properties] ...
     @property
     def x(self) -> int: return self.__x
     @x.setter
-    def x(self, x: int):
-        if not isinstance(x, int): raise TypeError("x must be integer")
+    def x(self, x):
+        if not isinstance(x, (int, float)): raise TypeError("x must be a number")
         self.__x = x
 
     @property
     def y(self) -> int: return self.__y
     @y.setter
-    def y(self, y: int):
-        if not isinstance(y, int): raise TypeError("y must be integer")
+    def y(self, y):
+        if not isinstance(y, (int, float)): raise TypeError("y must be a number")
         self.__y = y
 
-    # --- NEW: Read-Only Properties (No Setters) ---
     @property
     def width(self) -> int:
-        """ The width is fixed and cannot be changed. """
         return self.__width
 
     @property
     def height(self) -> int:
-        """ The height is fixed and cannot be changed. """
         return self.__height
 
     def receive_package(self):
@@ -56,7 +52,8 @@ class Truck:
         self.is_leaving = False
 
     def draw(self):
+        # Casting to int for drawing
         if self.packages_count == 8:
-            pyxel.blt(self.x, self.y, *constants.TRUCK_FULL)
+            pyxel.blt(int(self.x), int(self.y), *constants.TRUCK_FULL)
         else:
-            pyxel.blt(self.x, self.y, *self.__sprites[self.packages_count])
+            pyxel.blt(int(self.x), int(self.y), *self.__sprites[self.packages_count])

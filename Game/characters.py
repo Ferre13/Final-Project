@@ -37,8 +37,9 @@ class Character:
     @property
     def x(self) -> int: return self.__x
     @x.setter
-    def x(self, value: int):
-        if not isinstance(value, int): raise TypeError("x must be an integer")
+    def x(self, value):
+        # Relaxed type check for physics
+        if not isinstance(value, (int, float)): raise TypeError("x must be a number")
         self.__x = value
 
     @property
@@ -85,17 +86,25 @@ class Character:
         boss_sprite_h = self.sprites[self.STATE_BOSS][4]
         self.y = (constants.BOSS_Y) - boss_sprite_h
 
-    def exit_punishment_mode(self, conveyors_list: list):
+    def exit_punishment_mode(self):
+        # Removed conveyors_list argument
         self.state = self.STATE_STATIC
         self.x = self.original_x
-        self.update(conveyors_list)
+        self.update()
 
-    def update(self, conveyors_list: list):
+    def update(self):
+        # Removed conveyors_list argument
         if self.state == self.STATE_BOSS:
             return
         
+        # Input handling needs to know max floors. 
+        # For simplicity in this decoupled version, we assume a safe max (e.g., 10) 
+        # or we could pass just the INT limit, but logic is cleaner if Board checks limits.
+        # However, to keep standard movement here:
+        # We assume constants.FLOOR_Y_LEVELS has enough entries.
         if pyxel.btnp(self.key_up):
-            self.move_up(len(conveyors_list))
+            # We use the length of the constant list as the limit
+            self.move_up(len(constants.FLOOR_Y_LEVELS))
         elif pyxel.btnp(self.key_down):
             self.move_down()
 
@@ -103,16 +112,13 @@ class Character:
         current_sprite = self.sprites[self.state]
         sprite_h = current_sprite[4]
         
-        if self.floor == 0:
-            ground_top = constants.SCREEN_HEIGHT - 6
-            # Use visual sprite height
-            self.y = ground_top - sprite_h
-        else:
-            conv_index = self.floor
-            if 0 <= conv_index < len(conveyors_list):
-                conveyor = conveyors_list[conv_index]
-                # Use visual sprite height
-                self.y = (conveyor.y + 2) - sprite_h
+        # --- NEW LOGIC: Use Constant List ---
+        # Ensure we don't go out of index
+        safe_floor = min(self.floor, len(constants.FLOOR_Y_LEVELS) - 1)
+        target_floor_y = constants.FLOOR_Y_LEVELS[safe_floor]
+        
+        # Position is floor level minus the sprite height
+        self.y = target_floor_y - sprite_h
 
     def draw(self):
         img, u, v, w, h, colkey = self.sprites[self.state]
@@ -120,4 +126,6 @@ class Character:
         is_mario_ground_static = (self.name == "Mario" and self.floor == 0 and self.state == self.STATE_STATIC)
         if is_mario_ground_static:
              draw_w = -w
-        pyxel.blt(self.x, self.y, img, u, v, draw_w, h, colkey)
+        
+        # Cast to int for drawing
+        pyxel.blt(int(self.x), int(self.y), img, u, v, draw_w, h, colkey)

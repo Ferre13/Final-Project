@@ -5,7 +5,6 @@ from conveyor import Conveyor
 class Package:
     """
     Represents a package moving through the factory.
-    Uses State Machine (MOVING -> FALLING) and checks collisions internally.
     """
     STATE_MOVING = "moving"
     STATE_FALLING = "falling"
@@ -18,7 +17,9 @@ class Package:
         
         self.current_conveyor = start_conveyor
         self.floor_index = floor_index
-        self.sprite_list = self._get_sprite_list()
+        
+        # Use private methods (double underscore)
+        self.sprite_list = self.__get_sprite_list()
         
         # Position logic
         if self.current_conveyor.direction == 1:
@@ -30,18 +31,24 @@ class Package:
         self.y = self.current_conveyor.y - self.height
         
         self.status = self.STATE_MOVING
-        self.base_speed = self._get_speed_by_difficulty()
+        self.base_speed = self.__get_speed_by_difficulty()
+        
+        # RESTORED: Visual level index
         self.level_index = 0 
 
     @property
     def x(self) -> int: return self.__x
     @x.setter
-    def x(self, value: int): self.__x = int(value)
+    def x(self, value): 
+        if not isinstance(value, (int, float)): raise TypeError("x must be a number")
+        self.__x = value
 
     @property
     def y(self) -> int: return self.__y
     @y.setter
-    def y(self, value: int): self.__y = int(value)
+    def y(self, value): 
+        if not isinstance(value, (int, float)): raise TypeError("y must be a number")
+        self.__y = value
 
     @property
     def difficulty(self) -> str: return self.__difficulty
@@ -50,14 +57,16 @@ class Package:
     @property
     def height(self) -> int: return self.__height
 
-    def _get_speed_by_difficulty(self) -> float:
+    def __get_speed_by_difficulty(self) -> float:
+        """ Private auxiliary method to determine speed """
         if self.difficulty == "EASY": return constants.SLOW_SPEED
         elif self.difficulty == "MEDIUM": return constants.SLOW_SPEED 
         elif self.difficulty == "EXTREME": return constants.MEDIUM_SPEED
         elif self.difficulty == "CRAZY": return constants.RANDOM_SPEED
         return constants.SLOW_SPEED
 
-    def _get_sprite_list(self) -> list:
+    def __get_sprite_list(self) -> list:
+        """ Private auxiliary method to determine sprites """
         if self.difficulty == "EASY": return constants.PCK_EASY_SPRITES
         elif self.difficulty == "MEDIUM": return constants.PCK_MEDIUM_SPRITES
         elif self.difficulty == "EXTREME": return constants.PCK_EXTREME_SPRITES
@@ -77,72 +86,46 @@ class Package:
         self.y = self.current_conveyor.y - self.height
         self.status = self.STATE_MOVING
 
-    def update(self, mario, luigi, conveyors: list, truck):
+    def update(self):
         """
-        Updates package logic using State Machine.
+        Updates package logic.
         """
         if self.status == self.STATE_MOVING:
             # 1. Movement
             speed = 1 if self.floor_index == 0 else self.base_speed
             direction = self.current_conveyor.direction
+            
+            # Store previous X to detect crossing
             prev_x = self.x
             self.x += speed * direction
 
-            # 2. Visuals (Level Up)
+            # 2. RESTORED: Visuals (Level Up)
+            # We check against static constants, so no extra coupling is introduced.
             trigger_x = constants.CENTER_SCREEN
+            
+            # If we crossed the center line in either direction
             if (direction == -1 and prev_x > trigger_x and self.x <= trigger_x) or \
                (direction == 1 and prev_x < trigger_x and self.x >= trigger_x):
                 self.level_index += 1
-            
-            # 3. Check End of Conveyor
-            reached_end = False
-            if direction == 1 and self.x >= self.current_conveyor.end_x:
-                self.x = self.current_conveyor.end_x
-                reached_end = True
-            elif direction == -1 and self.x <= self.current_conveyor.x:
-                self.x = self.current_conveyor.x
-                reached_end = True
-            
-            # 4. State Transition Logic
-            if reached_end:
-                # Check for Character Collision
-                # Machine (Index 0) -> Mario (Floor 0)
-                # Belt 1 (Index 1) -> Luigi (Floor 1)
-                # Belt 2 (Index 2) -> Mario (Floor 2)
-                required_floor = self.floor_index
-                
-                # Check if ANY character is on the required floor
-                character_present = False
-                if mario.floor == required_floor or luigi.floor == required_floor:
-                    character_present = True
-                
-                if character_present:
-                    # Move to next conveyor
-                    next_idx = self.floor_index + 1
-                    if next_idx < len(conveyors):
-                        self.advance_to_conveyor(conveyors[next_idx])
-                    else:
-                        # Truck Delivery
-                        truck.receive_package()
-                        self.status = "delivered" 
-                else:
-                    # No character -> FALL
-                    self.status = self.STATE_FALLING
 
         elif self.status == self.STATE_FALLING:
             self.y += 2
-            if self.y > constants.SCREEN_HEIGHT:
-                 self.status = "lost"
 
     def draw(self):
+        # RESTORED: Select sprite based on level_index
+        # Each level has 2 sprites (normal, falling), so we multiply by 2
         sprite_idx = self.level_index * 2
+        
+        # Safety check: ensure we don't go out of bounds of the sprite list
         if sprite_idx >= len(self.sprite_list): 
             sprite_idx = len(self.sprite_list) - 2
         
-        # Use falling sprite visual if falling
+        # Use falling sprite visual if falling (next sprite in list)
         if self.status == self.STATE_FALLING:
              sprite_idx += 1 
              
         sprite = self.sprite_list[sprite_idx]
         img, u, v, w, h, colkey = sprite
-        pyxel.blt(self.x, self.y, img, u, v, w, h, colkey)
+        
+        # Cast to int for drawing
+        pyxel.blt(int(self.x), int(self.y), img, u, v, w, h, colkey)

@@ -66,7 +66,7 @@ class Truck:
     def draw(self):
         # Casting to int for drawing
         if self.packages_count == 8:
-            if self.departure_timer > 15:
+            if self.departure_timer > 30:
                  pyxel.blt(int(self.x), int(self.y), *self.__sprites[8])
             else:
                  pyxel.blt(int(self.x), int(self.y), *constants.TRUCK_FULL)

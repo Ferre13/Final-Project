@@ -153,6 +153,8 @@ MACHINE_X = SCREEN_WIDTH - 14
 MACHINE_Y = SCREEN_HEIGHT - 24 
 CONVEYOR_0_X = MACHINE_X - 32
 TRUCK_X = 8
+OVERHANG = 5  # Pixels a package can overhang the conveyor before falling
+
 
 BOSS_Y = MACHINE_Y - 3
 BOSS_MARIO = SCREEN_WIDTH - 16
@@ -165,7 +167,6 @@ SLOW_SPEED = 1
 MEDIUM_SPEED = 1.5
 RANDOM_SPEED = random.uniform(1, 2)
 
-OVERHANG = 5  # Pixels a package can overhang the conveyor before falling
 POINTS_PER_PACKAGE = 1
 POINTS_PER_TRUCK = 10
 MAX_FAILURES = 3

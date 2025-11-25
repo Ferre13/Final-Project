@@ -52,8 +52,8 @@ class Board:
         self.conveyors = []
         self.platforms = []
 
-        self.mario = Character("Mario", constants.MARIO_X + 3)
-        self.luigi = Character("Luigi", constants.LUIGI_X + 4)
+        self.mario = Character("Mario", constants.MARIO_X + 2)
+        self.luigi = Character("Luigi", constants.LUIGI_X + 3)
 
         # Create Level Sign
         self.level_sign = LevelSign(self.difficulty, 4, constants.SCREEN_HEIGHT - 22)

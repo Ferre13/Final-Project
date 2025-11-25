@@ -5,6 +5,12 @@ class Character:
     """ 
     This class represents the characters in the game (Mario and Luigi). 
     """
+    STATE_STATIC = 0
+    STATE_WAIT = 1
+    STATE_PCK = 2
+    STATE_BOSS = 3
+    STATE_REST1 = 4
+    STATE_REST2 = 5
     def __init__(self, name: str, x: int):
         """
         :param name: str - "Mario" or "Luigi"
@@ -13,16 +19,17 @@ class Character:
         self.name = name
         self.x = x
         self.y = 0
+        self.state = self.STATE_STATIC
 
         # Character specific settings
         if self.name == "Mario":
-            self.sprite = constants.MARIO_SPRITES[0]
+            self.sprites = constants.MARIO_SPRITES
             self.key_up = pyxel.KEY_UP
             self.key_down = pyxel.KEY_DOWN
             # Mario starts on Floor 0 (The Ground)
             self.floor = 0
         else:
-            self.sprite = constants.LUIGI_SPRITES[0]
+            self.sprites = constants.LUIGI_SPRITES
             self.key_up = pyxel.KEY_W
             self.key_down = pyxel.KEY_S
             # Luigi starts on Floor 1 (The first Conveyor)
@@ -58,6 +65,15 @@ class Character:
         if next_floor >= 0:
             self.floor = next_floor
 
+    def set_state_static(self):
+        self.state = self.STATE_STATIC
+        
+    def set_state_wait(self):
+        self.state = self.STATE_WAIT
+        
+    def set_state_pick(self):
+        self.state = self.STATE_PCK
+
     def update(self, floors_list: list):
         """
         Updates character logic.
@@ -69,7 +85,8 @@ class Character:
         elif pyxel.btnp(self.key_down):
             self.move_down()
 
-        sprite_h = self.sprite[4]
+        current_sprite = self.sprites[self.state]
+        sprite_h = current_sprite[4]
         if self.floor == 0:
             # SPECIAL CASE: GROUND
             # Ground Y is calculated as SCREEN_HEIGHT - 11 in board.py.
@@ -85,4 +102,20 @@ class Character:
 
     def draw(self):
         """ Draw the character sprite """
-        pyxel.blt(self.x, self.y, *self.sprite)
+        sprite = self.sprites[self.state]
+        img, u, v, w, h, colkey = sprite
+        
+        # 2. Flipping Logic
+        # Default draw width
+        draw_w = w
+        
+        # Mario on Floor 0 Logic:
+        # "floor0 (from Mario) has Mario_static but inverted (flipped horizontally)"
+        if self.name == "Mario" and self.floor == 0:
+             draw_w = -w
+             
+        # NOTE: If you need Mario to face Left on the other floors (since he is on the right),
+        # you might need to add an 'else' here to set draw_w = -w for floors > 0 as well.
+        # For now, I am strictly following the instruction "flipped on floor 0".
+
+        pyxel.blt(self.x, self.y, img, u, v, draw_w, h, colkey)

@@ -11,7 +11,6 @@ class Boss:
         self.target_character = None
         self.x = 0
         
-        # FIXED: Y position calculated to stand ON the floor
         # Floor Y is (BOSS_Y + 2). Boss sprite height is 16.
         self.y = (constants.BOSS_Y + 2) - 16
         

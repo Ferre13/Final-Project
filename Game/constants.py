@@ -94,7 +94,7 @@ DOOR_CLOSED = (0, 32, 136, 16, 16, 0)
 DOOR_OPENING = (0, 48, 136, 16, 16, 0)
 DOOR_OPEN = (0, 48, 120, 16, 16, 0)
 
-DOOR_SPRITES = {'closed': DOOR_CLOSED, 'opening': DOOR_OPENING, 'open': DOOR_OPEN}
+DOOR_SPRITES = {'closed': DOOR_CLOSED, 'opening': DOOR_OPENING, 'open': DOOR_OPEN, 'closing': DOOR_OPENING}
 
 # Number sprites
 NUMBER_0 = (1, 10, 32, 4, 8, 0)
@@ -179,8 +179,11 @@ TRUCK_X = 15
 # Boss positions
 # Watch out
 BOSS_Y = MACHINE_Y - 7
-BOSS_MARIO = SCREEN_WIDTH - 20
-BOSS_LUIGI = 10
+BOSS_MARIO = SCREEN_WIDTH - 16  # Right Margin
+BOSS_LUIGI = 0                  # Left Margin
+
+PUNISH_MARIO_X = SCREEN_WIDTH - 30
+PUNISH_LUIGI_X = 18
 
 # Characters controls
 MARIO_UP = "up"

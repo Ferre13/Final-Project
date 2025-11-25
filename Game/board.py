@@ -5,6 +5,8 @@ from truck import Truck
 from conveyor import Conveyor
 from platforms import Platform
 from background import VerticalStructure, Machine, ExitSignal, Window, LevelSign
+from boss import Boss
+from door import Door
 
 class Board:
     def __init__(self, difficulty: str):
@@ -14,7 +16,16 @@ class Board:
         # These are static elements, they dont change when the game restarts
         self.machine = Machine(constants.MACHINE_X, constants.MACHINE_Y)
         self.windows = [Window(20, 15), Window(215, 35), Window(215, 45)]
+        self.boss = Boss()
+        
+        door_y = (constants.BOSS_Y + 2) - 16
+        self.door_left = Door(constants.BOSS_LUIGI, door_y)
+        self.door_right = Door(constants.BOSS_MARIO, door_y)
 
+        self.is_punishing = False
+        self.punishment_timer = 0
+        self.punished_char = None
+        self.active_door = None
         self.game_start()
 
     @property
@@ -146,12 +157,58 @@ class Board:
             ground_plat = Platform(0, y, sprites_per_row, constants.FLOOR_SPRITE)
             self.platforms.append(ground_plat)
 
+    def trigger_failure(self, character_name: str):
+        """ Begins the Boss Punishment Sequence """
+        self.is_punishing = True
+                
+        # 1. Determine which door and character are involved
+        if character_name == "Mario":
+            self.active_door = self.door_right
+            self.punished_char = self.mario
+        else:
+            self.active_door = self.door_left
+            self.punished_char = self.luigi
+            
+        # 2. Start opening the door
+        self.active_door.open()
+
     def update(self):
-        self.mario.update(self.floors)
-        self.luigi.update(self.floors)
+        # Test Keys
+        if pyxel.btnp(pyxel.KEY_B): self.trigger_failure("Mario")
+        if pyxel.btnp(pyxel.KEY_N): self.trigger_failure("Luigi")
+
+        self.door_left.update()
+        self.door_right.update()
+
+        if self.is_punishing:
+            # Check if the door is fully open and Boss hasn't appeared yet
+            if self.active_door.state == "open" and not self.boss.active:
+                # Step 2: Door is open, Boss appears, Character moves
+                self.boss.appear(self.punished_char.name)
+                self.punished_char.enter_punishment_mode()
+                self.punishment_timer = 150 # Start countdown now
+
+            # If Boss is active, run the punishment timer
+            if self.boss.active:
+                self.boss.update()
+                self.punishment_timer -= 1
+                
+                # Step 3: End Punishment
+                if self.punishment_timer <= 0:
+                    self.is_punishing = False
+                    self.boss.disappear()
+                    self.active_door.close()
+                    self.punished_char.exit_punishment_mode(self.floors)
+                    self.punished_char = None
+                    self.active_door = None
+        else:
+            # Normal Game Loop
+            self.mario.update(self.floors)
+            self.luigi.update(self.floors)
+            self.truck.update()
+
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
-        self.truck.update()
 
     # Draw all elements
     def draw(self):
@@ -162,6 +219,10 @@ class Board:
             w.draw()
         self.machine.draw()
         self.exit_signal.draw()
+        self.door_left.draw()
+        self.door_right.draw()
+        self.boss.draw()
+
         for platform in self.platforms:
             platform.draw()
         for conv in self.conveyors:

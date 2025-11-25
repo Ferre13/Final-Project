@@ -1,76 +1,59 @@
 import constants
 import pyxel
-from door import Door
 
 class Boss:
     """ 
     This class represents the boss in the game. 
     """
-    def __init__(self, name: str):
-        """This is the magic method that initializes the Boss object.
-        :param x: int - The x-coordinate for the boss to appear at.
-        :param name: str - "Mario" or "Luigi"
-        """
-        self.name = name
-        self.y = constants.BOSS_Y
+    def __init__(self):
+        # The boss is initially hidden
+        self.active = False
+        self.target_character = None
+        self.x = 0
         
-        # Character specific settings
-        if self.name == "Mario":
-            self.sprites = constants.BOSS_1
+        # FIXED: Y position calculated to stand ON the floor
+        # Floor Y is (BOSS_Y + 2). Boss sprite height is 16.
+        self.y = (constants.BOSS_Y + 2) - 16
+        
+        self.animation_frame = 0
+        
+    def appear(self, character_name: str):
+        """
+        Activates the boss to punish a specific character.
+        """
+        self.active = True
+        self.target_character = character_name
+        self.animation_frame = 0
+        
+        # Determine position based on the target
+        if character_name == "Mario":
             self.x = constants.BOSS_MARIO
-        elif self.name == "Luigi":
-            self.sprites = constants.BOSS_2
+        else:
             self.x = constants.BOSS_LUIGI
-        else:   
-            raise ValueError("Invalid boss name. Must be 'Mario' or 'Luigi'.")
-        
-        self.is_visible = False
-        self.timer = 0
-        self.door = Door(self.x, self.y)
-        
-    @property
-    def name(self) -> str:
-        #This is the getter for the name attribute
-        return self.__name
-    
-    @name.setter
-    def name(self, name: str):
-        #This is the setter for the name attribute
-        if not isinstance(name, str):
-            raise TypeError("name must be a string")
-        self.__name = name
-        
-    
-    # These are the methods for the boss actions
-    
-    def appear(self, duration: int):
-        """
-        Makes the boss appear by opening the door.
-        :param duration: The number of frames the boss should be visible.
-        """
-        self.is_visible = True
-        self.timer = duration
-        self.door.open()
-    
-    def update(self):
-        """
-        Updates the boss's visibility timer and door state.
-        """
-        self.door.update()
-        if self.is_visible:
-            self.timer -= 1
-            if self.timer <= 0:
-                self.is_visible = False
-                self.door.close()
-    
-    def draw(self):
-        """
-        Draws the boss and the door on the screen.
-        """
-        self.door.draw()
-        if self.is_visible and self.door.state == "opened":
-            pyxel.blt(self.x, self.y, *self.sprites)
-    
 
-    
-    
+    def disappear(self):
+        self.active = False
+        self.target_character = None
+
+    def update(self):
+        if self.active:
+            self.animation_frame += 1
+
+    def draw(self):
+        if self.active:
+            # 1. Select the sprite based on animation frame
+            if (self.animation_frame // 10) % 2 == 0:
+                sprite = constants.BOSS_1
+            else:
+                sprite = constants.BOSS_2
+            
+            # 2. Unpack sprite data
+            img, u, v, w, h, colkey = sprite
+
+            # 3. Orientation Logic
+            # Boss sprites face Left by default.
+            # If targeting Luigi (Boss appears on Left), flip to face Right.
+            if self.target_character == "Luigi":
+                w = -w
+            
+            pyxel.blt(self.x, self.y, img, u, v, w, h, colkey)

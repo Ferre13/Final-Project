@@ -21,6 +21,9 @@ class Character:
         self.y = 0
         self.state = self.STATE_STATIC
 
+        self.original_x = x 
+        self.punishment_timer = 0
+
         # Character specific settings
         if self.name == "Mario":
             self.sprites = constants.MARIO_SPRITES
@@ -74,11 +77,36 @@ class Character:
     def set_state_pick(self):
         self.state = self.STATE_PCK
 
+    def enter_punishment_mode(self):
+        """ Moves character to boss platform and changes state """
+        self.state = self.STATE_BOSS
+        # Move to the Boss Platform X coordinate
+        if self.name == "Mario":
+            self.x = constants.PUNISH_MARIO_X
+        else:
+            self.x = constants.PUNISH_LUIGI_X
+        
+        # Set Y to the Boss Floor level
+        # Boss floor is at constants.BOSS_Y + 2. Character stands on top.
+        # Height logic: (Floor_Y) - Sprite_Height
+        self.y = (constants.BOSS_Y + 2) - self.sprites[self.STATE_BOSS][4]
+
+    def exit_punishment_mode(self, original_floors_list: list):
+        """ Returns character to normal gameplay """
+        self.state = self.STATE_STATIC
+        self.x = self.original_x
+        # Force a Y update to snap back to the correct floor height
+        self.update(original_floors_list)
+
+
     def update(self, floors_list: list):
         """
         Updates character logic.
         :param floors_list: List of Y coordinates for the floors
         """
+        if self.state == self.STATE_BOSS:
+            return
+        
         # Handle Input
         if pyxel.btnp(self.key_up):
             self.move_up(len(floors_list))
@@ -102,20 +130,20 @@ class Character:
 
     def draw(self):
         """ Draw the character sprite """
-        sprite = self.sprites[self.state]
-        img, u, v, w, h, colkey = sprite
+        img, u, v, w, h, colkey = self.sprites[self.state]
         
-        # 2. Flipping Logic
-        # Default draw width
+        # Default orientation
         draw_w = w
         
-        # Mario on Floor 0 Logic:
-        # "floor0 (from Mario) has Mario_static but inverted (flipped horizontally)"
-        if self.name == "Mario" and self.floor == 0:
+        # Special Case: Mario on Ground Floor (Static Only)
+        # We only flip him when he is waiting (Static), not when punished or moving
+        is_mario_ground_static = (
+            self.name == "Mario" and 
+            self.floor == 0 and 
+            self.state == self.STATE_STATIC
+        )
+
+        if is_mario_ground_static:
              draw_w = -w
              
-        # NOTE: If you need Mario to face Left on the other floors (since he is on the right),
-        # you might need to add an 'else' here to set draw_w = -w for floors > 0 as well.
-        # For now, I am strictly following the instruction "flipped on floor 0".
-
         pyxel.blt(self.x, self.y, img, u, v, draw_w, h, colkey)

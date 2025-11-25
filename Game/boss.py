@@ -1,24 +1,28 @@
 import constants
 import pyxel
+from door import Door
 
 class Boss:
     """ 
     This class represents the boss in the game. 
     """
-    def __init__(self, name: str):
+    def __init__(self, name: str, sprites):
         """This is the magic method that initializes the Boss object.
-        :param x: int - The x-coordinate of the boss
-        :param y: int - The y-coordinate of the boss
+        :param name: str - "Mario" or "Luigi"
         """
         self.name = name
         self.y = constants.BOSS_Y
+        self,is_visible = False
+        self.timer = 0
+        self.door = Door(self.x, self.y)
+        self.sprites = sprites
         
         # Character specific settings
         if self.name == "Mario":
-            self.sprite = constants.BOSS_MARIO
+            self.sprites = constants.BOSS_MARIO
             self.x = constants.BOSS_MARIO_X
         elif self.name == "Luigi":
-            self.sprite = constants.BOSS_LUIGI
+            self.sprites = constants.BOSS_LUIGI
             self.x = constants.BOSS_LUIGI_X
         
     @property
@@ -33,9 +37,36 @@ class Boss:
             raise TypeError("name must be a string")
         self.__name = name
         
-    @property
-    def y(self) -> int:
-        return self.__y
+    
+    # These are the methods for the boss actions
+    
+    def appear(self, duration: int):
+        """
+        Makes the boss appear by opening the door.
+        :param duration: The number of frames the boss should be visible.
+        """
+        self.is_visible = True
+        self.timer = duration
+        self.door.open()
+    
+    def update(self):
+        """
+        Updates the boss's visibility timer and door state.
+        """
+        self.door.update()
+        if self.is_visible:
+            self.timer -= 1
+            if self.timer <= 0:
+                self.is_visible = False
+                self.door.close()
+    
+    def draw(self):
+        """
+        Draws the boss and the door on the screen.
+        """
+        self.door.draw()
+        if self.is_visible and self.door.state == "opened":
+            pyxel.blt(self.x, self.y, *constants.BOSS_1)
     
 
     

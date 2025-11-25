@@ -8,12 +8,7 @@ class Truck:
         self.packages_count = 0
         self.is_leaving = False
         
-        self.__sprites = [
-            constants.TRUCK_EMPTY, constants.TRUCK_1, constants.TRUCK_2,
-            constants.TRUCK_3, constants.TRUCK_4, constants.TRUCK_5,
-            constants.TRUCK_6, constants.TRUCK_7, constants.TRUCK_8
-        ]
-
+        self.__sprites = constants.TRUCK_SPRITES
     @property
     def x(self) -> int:
         return self.__x

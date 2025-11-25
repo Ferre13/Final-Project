@@ -16,13 +16,13 @@ class Character:
 
         # Character specific settings
         if self.name == "Mario":
-            self.sprite = constants.MARIO_STATIC
+            self.sprite = constants.MARIO_SPRITES[0]
             self.key_up = pyxel.KEY_UP
             self.key_down = pyxel.KEY_DOWN
             # Mario starts on Floor 0 (The Ground)
             self.floor = 0
         else:
-            self.sprite = constants.LUIGI_STATIC
+            self.sprite = constants.LUIGI_SPRITES[0]
             self.key_up = pyxel.KEY_W
             self.key_down = pyxel.KEY_S
             # Luigi starts on Floor 1 (The first Conveyor)

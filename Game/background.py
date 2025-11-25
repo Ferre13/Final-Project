@@ -50,7 +50,7 @@ class LevelSign(GameObject):
     def __init__(self, difficulty: str, x: int, y: int):
         # Initialize x and y using the parent class
         super().__init__(x, y)
-        # Use private method with double underscore as per notebook
+        # Private method with double underscore
         self.sprite = self.__get_sprite(difficulty)
 
     def __get_sprite(self, difficulty: str):
@@ -70,11 +70,11 @@ class LevelSign(GameObject):
         pyxel.blt(self.x, self.y, *self.sprite)
 
 class VerticalStructure(GameObject):
-    def __init__(self, x: int, width: int, top_limit_y: int, base_y: int = constants.SCREEN_HEIGHT):
+    def __init__(self, x: int, width: int, top_limit_y: int, base_y: int):
         super().__init__(x, base_y) 
         self.width = width
         self.top_limit_y = top_limit_y
-        self.base_y = base_y 
+        self.base_y = base_y
 
     @property
     def width(self) -> int:

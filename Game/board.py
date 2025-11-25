@@ -13,7 +13,7 @@ class Board:
         
         # These are static elements, they dont change when the game restarts
         self.machine = Machine(constants.MACHINE_X, constants.MACHINE_Y)
-        self.windows = [Window(20, 15), Window(215, 35), Window(210, 45)]
+        self.windows = [Window(20, 15), Window(215, 35), Window(215, 45)]
 
         self.game_start()
 

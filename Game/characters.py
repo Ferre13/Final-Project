@@ -14,7 +14,7 @@ class Character:
         self.x = x
         self.y = 0
 
-        # --- SETUP BASED ON CHARACTER ---
+        # Character specific settings
         if self.name == "Mario":
             self.sprite = constants.MARIO_STATIC
             self.key_up = pyxel.KEY_UP

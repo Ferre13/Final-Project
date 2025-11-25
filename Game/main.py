@@ -4,10 +4,11 @@ import board
 
 class Game:
     def __init__(self):
+        # Added fps=60 parameter
         pyxel.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, title="Mario Bros Game")
         pyxel.load(constants.SPRITES_FILE)
         
-        self.board = board.Board("MEDIUM")
+        self.board = board.Board("EASY")
         
         pyxel.run(self.update, self.draw)
 

@@ -40,6 +40,6 @@ class Platform:
 
     def draw(self):
         w = self.sprite[3]
-        for i in range(self.width):
-            # Casting to int for drawing
-            pyxel.blt(int(self.x) + (i * w), int(self.y), *self.sprite)
+        for sprite in range(self.width):
+            #Converting to int for drawing
+            pyxel.blt(int(self.x) + (sprite * w), int(self.y), *self.sprite)

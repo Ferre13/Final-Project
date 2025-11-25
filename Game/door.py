@@ -44,14 +44,14 @@ class Door:
         Initiates the door opening sequence.
         """
         self.state = "opening" 
-        self.animation_timer = 30  # Duration of the opening animation in frames
+        self.animation_timer = 10  # Duration of the opening animation in frames
     
     def close(self):
         """
         Initiates the door closing sequence.
         """
         self.state = "closing"
-        self.animation_timer = 30  # Duration of the closing animation in frames
+        self.animation_timer = 10  # Duration of the closing animation in frames
         
     def update(self):
         """
@@ -74,11 +74,8 @@ class Door:
             if self.animation_timer <= 0:
                 self.state = "closed"
             
-        
     def draw(self):
         """
         Draws the door on the screen based on its current state.
         """
-        
         pyxel.blt(self.x, self.y, *self.sprites[self.state])
-        

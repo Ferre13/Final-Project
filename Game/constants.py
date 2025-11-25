@@ -165,6 +165,7 @@ SLOW_SPEED = 1
 MEDIUM_SPEED = 1.5
 RANDOM_SPEED = random.uniform(1, 2)
 
+OVERHANG = 5  # Pixels a package can overhang the conveyor before falling
 POINTS_PER_PACKAGE = 1
 POINTS_PER_TRUCK = 10
 MAX_FAILURES = 3

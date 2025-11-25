@@ -189,12 +189,27 @@ class Board:
                 conv = p.current_conveyor
                 reached_end = False
 
-                if conv.direction == 1 and p.x >= conv.end_x:
-                    p.x = conv.end_x 
-                    reached_end = True
-                elif conv.direction == -1 and p.x <= conv.x:
-                    p.x = conv.x 
-                    reached_end = True
+                # 1. Moving RIGHT (Direction 1)
+                # We check the RIGHT edge of the package (p.x + p.width) against the end of conveyor.
+                if conv.direction == 1:
+                    # Calculate right edge position
+                    pkg_right_edge = p.x + p.width
+                    limit = conv.end_x + constants.OVERHANG
+                    
+                    if pkg_right_edge >= limit:
+                        # Clamp visual position to the limit
+                        p.x = limit - p.width 
+                        reached_end = True
+
+                # 2. Moving LEFT (Direction -1)
+                # We check the LEFT edge of the package (p.x) against the start of conveyor.
+                elif conv.direction == -1:
+                    limit = conv.x - constants.OVERHANG
+                    
+                    if p.x <= limit:
+                        # Clamp visual position to the limit
+                        p.x = limit
+                        reached_end = True
 
                 if reached_end:
                     character_present = False

@@ -6,9 +6,11 @@ class Door:
     This class represents a door for the boss to appear from in the game. 
     """
     def __init__(self, x: int, y: int):
-        """This is the magic method that initializes the Door object.
+        """
+        This is the magic method that initializes the Door object.
         :param x: int - The x-coordinate of the door
-        :param y: int - The y-coordinate of the door"""
+        :param y: int - The y-coordinate of the door
+        """
         self.x = x
         self.y = y
         self.state = "closed"  # Possible states: "open", "opening", "closed"

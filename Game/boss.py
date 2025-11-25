@@ -6,16 +6,13 @@ class Boss:
     """ 
     This class represents the boss in the game. 
     """
-    def __init__(self, name: str, sprites):
+    def __init__(self, name: str):
         """This is the magic method that initializes the Boss object.
+        :param x: int - The x-coordinate for the boss to appear at.
         :param name: str - "Mario" or "Luigi"
         """
         self.name = name
         self.y = constants.BOSS_Y
-        self.is_visible = False
-        self.timer = 0
-        self.door = Door(self.x, self.y)
-        self.sprites = sprites
         
         # Character specific settings
         if self.name == "Mario":
@@ -24,6 +21,12 @@ class Boss:
         elif self.name == "Luigi":
             self.sprites = constants.BOSS_2
             self.x = constants.BOSS_LUIGI
+        else:   
+            raise ValueError("Invalid boss name. Must be 'Mario' or 'Luigi'.")
+        
+        self.is_visible = False
+        self.timer = 0
+        self.door = Door(self.x, self.y)
         
     @property
     def name(self) -> str:

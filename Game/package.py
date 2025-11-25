@@ -1,31 +1,37 @@
 import pyxel
 import constants
+from conveyor import Conveyor 
 
 class Package:
     """
-    Represents a package moving through the factory along a predefined route.
-    Logic: Move -> Jump to next segment automatically.
+    Represents a package moving through the factory.
+    Uses State Machine (MOVING -> FALLING) and checks collisions internally.
     """
     STATE_MOVING = "moving"
-    STATE_WAITING = "waiting"
-    def __init__(self, difficulty: str, route: list):
-        self.difficulty = difficulty
-        self.route = route
-        self.current_segment_index = 0
+    STATE_FALLING = "falling"
+    
+    def __init__(self, difficulty: str, start_conveyor: Conveyor, floor_index: int):
+        # Read-Only attributes
+        self.__difficulty = difficulty
+        self.__width = 11
+        self.__height = 6
+        
+        self.current_conveyor = start_conveyor
+        self.floor_index = floor_index
         self.sprite_list = self._get_sprite_list()
         
-        # --- INITIALIZATION ---
-        start_segment = self.route[0]
-        self.sprite_h = self.sprite_list[0][4]
-        
-        self.x = start_segment['start_x']
-        self.y = start_segment['start_y'] - self.sprite_h
+        # Position logic
+        if self.current_conveyor.direction == 1:
+             self.x = self.current_conveyor.x
+        else:
+             self.x = self.current_conveyor.end_x - 10 
+             
+        # Use read-only height property
+        self.y = self.current_conveyor.y - self.height
         
         self.status = self.STATE_MOVING
-        self.direction = start_segment['direction']
-        
         self.base_speed = self._get_speed_by_difficulty()
-        self.speed = self.base_speed
+        self.level_index = 0 
 
     @property
     def x(self) -> int: return self.__x
@@ -36,6 +42,13 @@ class Package:
     def y(self) -> int: return self.__y
     @y.setter
     def y(self, value: int): self.__y = int(value)
+
+    @property
+    def difficulty(self) -> str: return self.__difficulty
+    @property
+    def width(self) -> int: return self.__width
+    @property
+    def height(self) -> int: return self.__height
 
     def _get_speed_by_difficulty(self) -> float:
         if self.difficulty == "EASY": return constants.SLOW_SPEED
@@ -51,68 +64,85 @@ class Package:
         elif self.difficulty == "CRAZY": return constants.PCK_CRAZY_SPRITES
         return constants.PCK_EASY_SPRITES
 
-    def advance(self):
-        """ 
-        Instantly jumps the package to the start of the NEXT segment.
-        """
-        self.current_segment_index += 1
+    def advance_to_conveyor(self, next_conveyor: Conveyor):
+        """ Jumps the package to the next conveyor object. """
+        self.current_conveyor = next_conveyor
+        self.floor_index += 1
         
-        if self.current_segment_index < len(self.route):
-            # Get next segment data
-            next_segment = self.route[self.current_segment_index]
-            
-            # Teleport coordinates
-            self.x = next_segment['start_x']
-            self.y = next_segment['start_y'] - self.sprite_h
-            self.direction = next_segment['direction']
-            
-            # Resume moving immediately
-            self.status = self.STATE_MOVING
-        else:
-            # End of route (Truck logic handled in Board)
-            pass
+        if self.current_conveyor.direction == 1: # Right
+            self.x = self.current_conveyor.x
+        else: # Left
+            self.x = self.current_conveyor.end_x - 10
 
-    def update(self):
+        self.y = self.current_conveyor.y - self.height
+        self.status = self.STATE_MOVING
+
+    def update(self, mario, luigi, conveyors: list, truck):
+        """
+        Updates package logic using State Machine.
+        """
         if self.status == self.STATE_MOVING:
-            # Speed Rule: Machine (Segment 0) is always speed 1
-            current_speed = 1 if self.current_segment_index == 0 else self.speed
+            # 1. Movement
+            speed = 1 if self.floor_index == 0 else self.base_speed
+            direction = self.current_conveyor.direction
+            prev_x = self.x
+            self.x += speed * direction
+
+            # 2. Visuals (Level Up)
+            trigger_x = constants.CENTER_SCREEN
+            if (direction == -1 and prev_x > trigger_x and self.x <= trigger_x) or \
+               (direction == 1 and prev_x < trigger_x and self.x >= trigger_x):
+                self.level_index += 1
             
-            self.x += current_speed * self.direction
-            
-            # --- CHECK SEGMENT LIMITS ---
-            current_segment = self.route[self.current_segment_index]
-            limit_x = current_segment['end_x']
-            
-            # Check if we hit the end based on direction
+            # 3. Check End of Conveyor
             reached_end = False
-            if self.direction == -1 and self.x <= limit_x: # Moving Left
-                self.x = limit_x
+            if direction == 1 and self.x >= self.current_conveyor.end_x:
+                self.x = self.current_conveyor.end_x
                 reached_end = True
-            elif self.direction == 1 and self.x >= limit_x: # Moving Right
-                self.x = limit_x
+            elif direction == -1 and self.x <= self.current_conveyor.x:
+                self.x = self.current_conveyor.x
                 reached_end = True
             
+            # 4. State Transition Logic
             if reached_end:
-                self.status = self.STATE_WAITING
+                # Check for Character Collision
+                # Machine (Index 0) -> Mario (Floor 0)
+                # Belt 1 (Index 1) -> Luigi (Floor 1)
+                # Belt 2 (Index 2) -> Mario (Floor 2)
+                required_floor = self.floor_index
+                
+                # Check if ANY character is on the required floor
+                character_present = False
+                if mario.floor == required_floor or luigi.floor == required_floor:
+                    character_present = True
+                
+                if character_present:
+                    # Move to next conveyor
+                    next_idx = self.floor_index + 1
+                    if next_idx < len(conveyors):
+                        self.advance_to_conveyor(conveyors[next_idx])
+                    else:
+                        # Truck Delivery
+                        truck.receive_package()
+                        self.status = "delivered" 
+                else:
+                    # No character -> FALL
+                    self.status = self.STATE_FALLING
+
+        elif self.status == self.STATE_FALLING:
+            self.y += 2
+            if self.y > constants.SCREEN_HEIGHT:
+                 self.status = "lost"
 
     def draw(self):
-        # Calculate sprite index
-        # Segment 0 (Machine) -> Index 0
-        # Segment 1 (Floor 0) -> Index 2
-        # Segment 2 (Floor 1) -> Index 4
-        # Pattern: index = segment * 2
-        
-        sprite_idx = self.current_segment_index * 2
-            
-        # Safety cap
+        sprite_idx = self.level_index * 2
         if sprite_idx >= len(self.sprite_list): 
             sprite_idx = len(self.sprite_list) - 2
-
-        # Simple Sprite Selection
+        
+        # Use falling sprite visual if falling
+        if self.status == self.STATE_FALLING:
+             sprite_idx += 1 
+             
         sprite = self.sprite_list[sprite_idx]
-
         img, u, v, w, h, colkey = sprite
-        
-        draw_w = w
-        
         pyxel.blt(self.x, self.y, img, u, v, w, h, colkey)

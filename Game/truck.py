@@ -9,47 +9,38 @@ class Truck:
         self.is_leaving = False
         
         self.__sprites = constants.TRUCK_SPRITES
-    @property
-    def x(self) -> int:
-        return self.__x
+        
+        # Read-Only attributes (Private with __)
+        self.__width = 32
+        self.__height = 16
 
+    # ... [Keep x and y properties] ...
+    @property
+    def x(self) -> int: return self.__x
     @x.setter
     def x(self, x: int):
-        if not isinstance(x, int):
-            raise TypeError("The x coordinate must be an integer")
+        if not isinstance(x, int): raise TypeError("x must be integer")
         self.__x = x
 
     @property
-    def y(self) -> int:
-        return self.__y
-
+    def y(self) -> int: return self.__y
     @y.setter
     def y(self, y: int):
-        if not isinstance(y, int):
-            raise TypeError("The y coordinate must be an integer")
+        if not isinstance(y, int): raise TypeError("y must be integer")
         self.__y = y
 
+    # --- NEW: Read-Only Properties (No Setters) ---
     @property
-    def packages_count(self) -> int:
-        return self.__packages_count
+    def width(self) -> int:
+        """ The width is fixed and cannot be changed. """
+        return self.__width
 
-    @packages_count.setter
-    def packages_count(self, value: int):
-        if not isinstance(value, int):
-            raise TypeError("The packages_count must be an integer")
-        self.__packages_count = value
-    
     @property
-    def is_leaving(self) -> bool:
-        return self.__is_leaving
+    def height(self) -> int:
+        """ The height is fixed and cannot be changed. """
+        return self.__height
 
-    @is_leaving.setter
-    def is_leaving(self, value: bool):
-        if not isinstance(value, bool):
-            raise TypeError("The is_leaving must be a boolean")
-        self.__is_leaving = value
-
-    def add_package(self):
+    def receive_package(self):
         if self.packages_count < 8:
             self.packages_count += 1
             if self.packages_count == 8:

@@ -58,6 +58,16 @@ class Conveyor:
             raise ValueError("Direction must be -1 or 1")
         self.__direction = value
 
+    @property
+    def width_px(self) -> int:
+        """ Returns the total pixel width of the conveyor. """
+        return self.length * constants.CONVEYOR_SPRITE[3]
+    
+    @property
+    def end_x(self) -> int:
+        """ Returns the X coordinate where the conveyor ends. """
+        return self.x + self.width_px
+
     def draw(self):
         """
         Draws the conveyor belt.
@@ -65,7 +75,6 @@ class Conveyor:
         Right Side: Right Half pixels left + Full Sprite
         """
         sprite_width = constants.CONVEYOR_SPRITE[3]
-
         for conv in range(self.length):
             x_pos = self.x + (conv * sprite_width)
             pyxel.blt(x_pos, self.y, *constants.CONVEYOR_SPRITE)

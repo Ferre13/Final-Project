@@ -94,7 +94,7 @@ DOOR_CLOSED = (0, 32, 136, 16, 16, 0)
 DOOR_OPENING = (0, 48, 136, 16, 16, 0)
 DOOR_OPEN = (0, 48, 120, 16, 16, 0)
 
-DOOR_SPRITES = {"closed": DOOR_CLOSED, "opening": DOOR_OPENING, "open": DOOR_OPEN}
+DOOR_SPRITES = {'closed': DOOR_CLOSED, 'opening': DOOR_OPENING, 'open': DOOR_OPEN}
 
 # Number sprites
 NUMBER_0 = (1, 10, 32, 4, 8, 0)

@@ -12,18 +12,18 @@ class Boss:
         """
         self.name = name
         self.y = constants.BOSS_Y
-        self,is_visible = False
+        self.is_visible = False
         self.timer = 0
         self.door = Door(self.x, self.y)
         self.sprites = sprites
         
         # Character specific settings
         if self.name == "Mario":
-            self.sprites = constants.BOSS_MARIO
-            self.x = constants.BOSS_MARIO_X
+            self.sprites = constants.BOSS_1
+            self.x = constants.BOSS_MARIO
         elif self.name == "Luigi":
-            self.sprites = constants.BOSS_LUIGI
-            self.x = constants.BOSS_LUIGI_X
+            self.sprites = constants.BOSS_2
+            self.x = constants.BOSS_LUIGI
         
     @property
     def name(self) -> str:
@@ -66,7 +66,7 @@ class Boss:
         """
         self.door.draw()
         if self.is_visible and self.door.state == "opened":
-            pyxel.blt(self.x, self.y, *constants.BOSS_1)
+            pyxel.blt(self.x, self.y, *self.sprites)
     
 
     

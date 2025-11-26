@@ -31,6 +31,8 @@ class Board:
         self.active_door = None
         self.is_paused = False
         self.is_delivering = False
+        self.delivery_phase = 0  # 0:Anim, 1:Leave, 2:Wait, 3:Return
+        self.delivery_timer = 0
         
         self.floor_max_index = 0
 
@@ -70,7 +72,7 @@ class Board:
         self.platforms = []
 
         # Machine Conveyor (Always 1x Speed)
-        self.conveyors.append(Conveyor(constants.CONVEYOR_0_X, floor_y_positions[0], 1, 1.0, -1))
+        self.conveyors.append(Conveyor(constants.CONVEYOR_0_X, floor_y_positions[0], 1, constants.SLOW_SPEED, -1))
         
         # Main Loops for Conveyors
         for index, y_pos in enumerate(floor_y_positions):
@@ -89,14 +91,15 @@ class Board:
             speed = 1.0 # Default (EASY)
             
             if self.difficulty == "MEDIUM":
-                if is_odd_belt: speed = 1.5
-                else: speed = 1.0
+                if is_odd_belt: speed = constants.MEDIUM_SPEED
+                else: speed = constants.SLOW_SPEED
             elif self.difficulty == "EXTREME":
-                if is_odd_belt: speed = 2.0
-                else: speed = 1.5
+                if is_odd_belt: speed = constants.HIGH_SPEED
+                else: speed = constants.MEDIUM_SPEED
             elif self.difficulty == "CRAZY":
                 # Random float between 1.0 and 2.0 for EACH belt
-                speed = random.uniform(1.0, 2.0)
+                speed = 10
+                # random.uniform(1.0, 2.0)
             
             self.conveyors.append(Conveyor(constants.CONVEYOR_X_START, y_pos, constants.CONVEYOR_SEGMENTS, speed, direction))
 
@@ -241,11 +244,7 @@ class Board:
                             
                             if self.truck.packages_count == 8:
                                 self.score += 10
-                                # TRIGGER DELIVERY SEQUENCE
-                                self.is_paused = True
-                                self.is_delivering = True
-                                self.mario.enter_rest_mode()
-                                self.luigi.enter_rest_mode()
+                                self.start_delivery_sequence() # <--- CALL HERE
                                 
                             self.packages.remove(package)
                     else:
@@ -291,20 +290,67 @@ class Board:
             self.is_punishing = False
             self.is_paused = False
 
+    def start_delivery_sequence(self):
+        self.is_paused = True
+        self.is_delivering = True
+        
+        # Initialize Phase 0: Animation (Open -> Closed)
+        self.delivery_phase = 0
+        self.delivery_timer = 60 # 1 second total
+        
+        # Characters Rest
+        self.mario.enter_rest_mode()
+        self.luigi.enter_rest_mode()
+
     def __process_delivery(self):
-        """ Handles the truck delivery sequence while the game is paused. """
-        self.truck.update()
-        # Update characters so their rest animation plays
+        # Keep characters breathing
         self.mario.update()
         self.luigi.update()
-        
-        # Check if truck has left the screen
-        if self.truck.x < -self.truck.width:
-            self.truck.reset()
-            self.mario.exit_rest_mode()
-            self.luigi.exit_rest_mode()
-            self.is_delivering = False
-            self.is_paused = False
+
+        # --- PHASE 0: Animation (1 Second) ---
+        if self.delivery_phase == 0:
+            self.delivery_timer -= 1
+            
+            # First 0.5s: Door Open (truck.is_closed is False by default)
+            # Second 0.5s: Close Door
+            if self.delivery_timer < 30:
+                self.truck.is_closed = True
+            
+            # Time's up -> Move to Leaving
+            if self.delivery_timer <= 0:
+                self.delivery_phase = 1
+
+        # --- PHASE 1: Leaving (Move Left) ---
+        elif self.delivery_phase == 1:
+            self.truck.x -= 2
+            
+            # Check if fully off-screen
+            if self.truck.x < -self.truck.width:
+                self.delivery_phase = 2
+                self.delivery_timer = 30 # Wait 0.5s (or 60 for 1s)
+                self.truck.empty_cargo() # Empty it while hidden
+
+        # --- PHASE 2: Waiting Off-Screen ---
+        elif self.delivery_phase == 2:
+            self.delivery_timer -= 1
+            if self.delivery_timer <= 0:
+                self.delivery_phase = 3
+                # Teleport to left edge for re-entry
+                self.truck.x = -self.truck.width 
+
+        # --- PHASE 3: Returning (Move Right) ---
+        elif self.delivery_phase == 3:
+            self.truck.x += 2
+            
+            # Arrived at dock
+            if self.truck.x >= constants.TRUCK_X:
+                self.truck.reset() # Snap to exact position
+                
+                # Resume Game
+                self.mario.exit_rest_mode()
+                self.luigi.exit_rest_mode()
+                self.is_delivering = False
+                self.is_paused = False
 
     def update(self):
         self.door_left.update()

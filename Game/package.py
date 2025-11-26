@@ -50,6 +50,8 @@ class Package:
     def width(self) -> int: return self.__width
     @property
     def height(self) -> int: return self.__height
+    
+    # Methods for the package
 
     def __get_sprite_list(self) -> list:
         if self.difficulty == "EASY": return constants.PCK_EASY_SPRITES

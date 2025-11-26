@@ -98,8 +98,7 @@ class Board:
                 else: speed = constants.MEDIUM_SPEED
             elif self.difficulty == "CRAZY":
                 # Random float between 1.0 and 2.0 for EACH belt
-                speed = 10
-                # random.uniform(1.0, 2.0)
+                speed = random.uniform(1.0, 2.0)
             
             self.conveyors.append(Conveyor(constants.CONVEYOR_X_START, y_pos, constants.CONVEYOR_SEGMENTS, speed, direction))
 

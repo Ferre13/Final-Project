@@ -11,8 +11,8 @@ class Package:
     
     def __init__(self, difficulty: str, start_conveyor: Conveyor, floor_index: int):
         self.__difficulty = difficulty
-        self.__width = 11
-        self.__height = 6
+        self.__width = constants.PCK_LVL1[3]
+        self.__height = constants.PCK_LVL1[4]
         
         self.current_conveyor = start_conveyor
         self.floor_index = floor_index
@@ -65,17 +65,16 @@ class Package:
         self.floor_index += 1
         
         if self.current_conveyor.direction == 1: 
-            self.x = self.current_conveyor.x
+            self.x = self.current_conveyor.x - constants.OVERHANG
         else: 
-            self.x = self.current_conveyor.end_x - 10
+            self.x = self.current_conveyor.end_x + constants.OVERHANG - self.width
 
         self.y = self.current_conveyor.y - self.height
         self.status = self.STATE_MOVING
 
     def update(self):
         if self.status == self.STATE_MOVING:
-            # --- UPDATED PHYSICS ---
-            # Use the actual speed of the conveyor (supports floats and random values)
+            # Use the speed of the conveyor
             speed = self.current_conveyor.speed
             direction = self.current_conveyor.direction
             

@@ -52,7 +52,7 @@ class Door:
         """
         self.state = "closing"
         self.animation_timer = 10  # Duration of the closing animation in frames
-        
+
     def update(self):
         """
         Updates the door's state and animation.

@@ -3,9 +3,16 @@ import pyxel
 
 class Door:
     """ 
-    Represents a door. Uses centralized constants for states.
+    Represents a door for the boss's appearance. It's a simple state machine
+    that handles its own opening and closing animations.
     """
     def __init__(self, x: int, y: int):
+        """
+        Initializes a door at a specific location.
+
+        :param x: The x-coordinate.
+        :param y: The y-coordinate.
+        """
         self.x = x
         self.y = y
         self.state = constants.DOOR_STATE_CLOSED
@@ -16,34 +23,41 @@ class Door:
     def x(self) -> int: return self.__x
     @x.setter
     def x(self, x: int):
-        if not isinstance(x, int): raise TypeError("x must be int")
+        if not isinstance(x, int): raise TypeError("x must be an integer")
         self.__x = x
     
     @property
     def y(self) -> int: return self.__y
     @y.setter
     def y(self, y: int):    
-        if not isinstance(y, int): raise TypeError("y must be int")
+        if not isinstance(y, int): raise TypeError("y must be an integer")
         self.__y = y
         
     def open(self):
+        """Starts the sequence to open the door."""
         self.state = constants.DOOR_STATE_OPENING 
         self.animation_timer = constants.DOOR_ANIMATION_SPEED
     
     def close(self):
+        """Starts the sequence to close the door."""
         self.state = constants.DOOR_STATE_CLOSING
         self.animation_timer = constants.DOOR_ANIMATION_SPEED
 
     def update(self):
+        """Updates the door's state based on its animation timer."""
+        # If opening, wait for the timer to finish, then switch to OPEN.
         if self.state == constants.DOOR_STATE_OPENING:
             self.animation_timer -= 1
             if self.animation_timer <= 0:
                 self.state = constants.DOOR_STATE_OPEN
 
+        # If closing, wait for the timer to finish, then switch to CLOSED.
         elif self.state == constants.DOOR_STATE_CLOSING:
             self.animation_timer -= 1
             if self.animation_timer <= 0:
                 self.state = constants.DOOR_STATE_CLOSED
             
     def draw(self):
+        """Draws the door sprite that corresponds to its current state."""
+        # The sprite is selected from the dictionary using the state string as the key.
         pyxel.blt(self.x, self.y, *self.sprites[self.state])

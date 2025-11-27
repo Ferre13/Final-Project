@@ -4,7 +4,7 @@ import board
 
 class Game:
     def __init__(self):
-        pyxel.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, title="Mario Bros Game")
+        pyxel.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, title = "Mario Bros Game")
         pyxel.load(constants.SPRITES_FILE)
         
         self.board = board.Board("EASY")

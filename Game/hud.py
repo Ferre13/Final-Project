@@ -17,32 +17,35 @@ class HUD:
         score_str = str(score)
         x_offset = constants.SCORE_X
         
-        # Draw 'SCORE' label (optional, simple text for now or sprite if you have it)
+        # Draw 'SCORE' text
         pyxel.text(x_offset - 23, constants.SCORE_Y + 1, "SCORE", 7)
 
+        # Draw each digit of the score
         for char in score_str:
             digit = int(char)
-            sprite = self.__number_sprites[digit]
-            img, u, v, w, h, colkey = sprite
+            # Get each value from the sprite tuple
+            img, u, v, w, h, colkey = self.__number_sprites[digit]
             
             pyxel.blt(x_offset, constants.SCORE_Y, img, u, v, w, h, colkey)
-            x_offset += (w + 1) # Advance X for next digit
+            # Calculate next x position
+            x_offset += (w + 1)
 
     def draw_lives(self, failures: int):
         """
-        Draws the lives (Misses). 
-        Logic: We draw specific icons to represent 'Lives Left' or 'Failures'.
+        Draws the lives left. 
+        Logic: We draw specific icons to represent 'Lives Left'.
         """
-        # Draw "MISS" label
-        pyxel.text(constants.LIVES_X, constants.LIVES_Y, "MISS", 7)
+        # Draw "LIVES" label
+        pyxel.text(constants.LIVES_X, constants.LIVES_Y, "LIVES", 7)
         
-        start_x = constants.LIVES_X + 25
+        start_x = constants.LIVES_X + 15
         
-        # Calculate lives left (Max - Failures)
+        # Calculate lives left
         lives_left = constants.MAX_FAILURES - failures
         
         # Draw a Mario face for each life remaining
-        for i in range(lives_left):
+        for life in range(lives_left):
             img, u, v, w, h, colkey = self.__life_sprite
-            px = start_x + (i * (w + 2))
-            pyxel.blt(px, constants.LIVES_Y, img, u, v, w, h, colkey)
+            # Calculate position for each life icon
+            pos_x = start_x + (life * (w + 2))
+            pyxel.blt(pos_x, constants.LIVES_Y, img, u, v, w, h, colkey)

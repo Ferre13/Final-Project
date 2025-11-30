@@ -19,10 +19,6 @@ class Truck:
         self.is_delivering = False
         
         self.__sprites = constants.TRUCK_SPRITES
-        
-        # Internal state machine for the delivery animation
-        self.__phase = 0 
-        self.__timer = 0
 
     @property
     def x(self) -> int: 

@@ -1,6 +1,5 @@
 import pyxel
 import constants
-import states
 from hud import HUD
 from package_logic import PackageLogic
 
@@ -46,7 +45,7 @@ class Board:
         self.punished_char = None
         self.deliveries_count = 0
         self.hud = HUD()
-        self.state = states.PLAYING
+        self.state = constants.PLAYING
 
     def reset_game(self):
         """ Resets all game state to initial values without recreating objects. """
@@ -55,7 +54,7 @@ class Board:
         self.packages = []
         self.deliveries_count = 0
         self.punished_char = None
-        self.state = states.PLAYING
+        self.state = constants.PLAYING
         
         self.truck.reset()
         
@@ -99,7 +98,7 @@ class Board:
             self.boss.appear("LUIGI_FAIL")
         
         self.punished_char.enter_punishment_mode()
-        self.state = states.BOSS_SEQUENCE
+        self.state = constants.BOSS_SEQUENCE
 
     # --- Main Update Logic ---
 
@@ -108,13 +107,13 @@ class Board:
         The main update loop, which dispatches to other update methods
         based on the current game state.
         """
-        if self.state == states.PLAYING:
+        if self.state == constants.PLAYING:
             self.__update_playing()
-        elif self.state == states.TRUCK_SEQUENCE:
+        elif self.state == constants.TRUCK_SEQUENCE:
             self.__update_truck_sequence()
-        elif self.state == states.BOSS_SEQUENCE:
+        elif self.state == constants.BOSS_SEQUENCE:
             self.__update_boss_sequence()
-        elif self.state == states.GAME_OVER:
+        elif self.state == constants.GAME_OVER:
             self.__update_game_over()
         
         # Global actions - can be moved inside states if needed
@@ -144,7 +143,7 @@ class Board:
             self.score += constants.POINTS_PER_TRUCK
             self.handle_truck_bonus()
             self.boss.appear("BREAK")  # Trigger the post-delivery boss appearance
-            self.state = states.BOSS_SEQUENCE
+            self.state = constants.BOSS_SEQUENCE
 
     def __update_boss_sequence(self):
         """Handles the boss appearance animation (for failures or breaks)."""
@@ -157,7 +156,7 @@ class Board:
             # Always exit rest mode after any boss sequence
             self.mario.exit_rest_mode()
             self.luigi.exit_rest_mode()
-            self.state = states.PLAYING
+            self.state = constants.PLAYING
 
     def __update_game_over(self):
         """Handles the game over screen and input for restarting."""
@@ -174,7 +173,7 @@ class Board:
         # Clear screen
         pyxel.cls(0)
 
-        if self.state == states.GAME_OVER:
+        if self.state == constants.GAME_OVER:
             self.__draw_game_over()
         else:
             self.__draw_playing()

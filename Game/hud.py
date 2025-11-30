@@ -7,9 +7,18 @@ class HUD:
     and remaining lives on the screen.
     """
     def __init__(self):
-        """Initializes the HUD by loading necessary sprites from constants."""
-        self.__number_sprites = constants.NUMBER_SPRITES
-        self.__life_sprite = constants.LIFE_SPRITE
+        """Initializes the HUD. Currently does not need to store any state."""
+        pass
+
+    @property
+    def __number_sprites(self):
+        """Returns the list of number sprites from constants."""
+        return constants.NUMBER_SPRITES
+
+    @property
+    def __life_sprite(self):
+        """Returns the life icon sprite from constants."""
+        return constants.LIFE_SPRITE
 
     def draw_score(self, score: int):
         """
@@ -17,11 +26,10 @@ class HUD:
 
         :param score: The current score to be displayed.
         """
+        # We have to convert the score to a string to access each digit individually
         score_str = str(score)
         x_offset = constants.SCORE_X
         
-        # Draw 'SCORE' text label
-        pyxel.text(x_offset - 23, constants.SCORE_Y + 1, "SCORE", 7)
 
         # Draw each digit of the score using its sprite
         for char in score_str:
@@ -29,7 +37,8 @@ class HUD:
             img, u, v, w, h, colkey = self.__number_sprites[digit]
             
             pyxel.blt(x_offset, constants.SCORE_Y, img, u, v, w, h, colkey)
-            x_offset += (w + 1) # Move to the next position for the next digit
+            # Move the x_offset for the next digit, adding the width and 1 pixel for spacing
+            x_offset += (w + 1)
 
     def draw_lives(self, failures: int):
         """
@@ -40,7 +49,7 @@ class HUD:
         """        
         lives_left = constants.MAX_FAILURES - failures
         
-        # Draw a Mario face icon for each life the player has remaining
+        # Draw a Mario face icon for each life left
         for life in range(lives_left):
             img, u, v, w, h, colkey = self.__life_sprite
             # Calculate position for each life icon, adding 2 pixels for spacing

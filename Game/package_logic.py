@@ -1,6 +1,5 @@
 import constants
 from package import Package
-import states
 
 class PackageLogic:
     """
@@ -69,7 +68,7 @@ class PackageLogic:
         self.board.failures += 1
         
         if self.board.failures >= constants.MAX_FAILURES:
-            self.board.state = states.GAME_OVER
+            self.board.state = constants.GAME_OVER
         else:
             self.board.active_punishment(culprit)
 
@@ -87,7 +86,7 @@ class PackageLogic:
             else:
                 # Package reaches the final conveyor and is delivered to the truck
                 if self.board.truck.receive_package():
-                    self.board.state = states.TRUCK_SEQUENCE
+                    self.board.state = constants.TRUCK_SEQUENCE
                 self.board.packages.remove(p)
                 self.board.score += constants.POINTS_PER_PACKAGE
         else:

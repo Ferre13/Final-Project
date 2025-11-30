@@ -28,19 +28,11 @@ class Character:
         
         # The maximum floor index the character can be on.
         self.max_floor_index = num_floors
-        self.__width = constants.MARIO_STATIC[3]
-        self.__height = constants.MARIO_STATIC[4]
 
         if self.name == "Mario":
-            self.__sprites = constants.MARIO_SPRITES
-            self.key_up = pyxel.KEY_UP
-            self.key_down = pyxel.KEY_DOWN
-            self.floor = 0  # Mario starts on the ground floor
+            self.floor = 0
         else:
-            self.__sprites = constants.LUIGI_SPRITES
-            self.key_up = pyxel.KEY_W
-            self.key_down = pyxel.KEY_S
-            self.floor = 1  # Luigi starts on the first odd-numbered floor
+            self.floor = 1
 
     @property
     def x(self) -> int: return self.__x
@@ -65,16 +57,47 @@ class Character:
 
     @property
     def name(self) -> str: return self.__name
+    
     @property
-    def width(self) -> int: return self.__width
+    def width(self) -> int:
+        """Returns the width of the character's static sprite."""
+        return constants.MARIO_STATIC[3]
+
     @property
-    def height(self) -> int: return self.__height
+    def height(self) -> int:
+        """Returns the height of the character's static sprite."""
+        return constants.MARIO_STATIC[4]
+
     @property
     def state(self) -> int: return self.__state
     @state.setter
     def state(self, value: int):
         if not isinstance(value, int): raise TypeError("state must be int")
         self.__state = value
+
+    @property
+    def __sprites(self) -> list:
+        """Returns the appropriate list of sprites based on the character's name."""
+        if self.name == "Mario":
+            return constants.MARIO_SPRITES
+        else:
+            return constants.LUIGI_SPRITES
+
+    @property
+    def key_up(self) -> int:
+        """Returns the appropriate 'up' key based on the character's name."""
+        if self.name == "Mario":
+            return pyxel.KEY_UP
+        else:
+            return pyxel.KEY_W
+
+    @property
+    def key_down(self) -> int:
+        """Returns the appropriate 'down' key based on the character's name."""
+        if self.name == "Mario":
+            return pyxel.KEY_DOWN
+        else:
+            return pyxel.KEY_S
 
     def can_receive_package(self, package_floor: int) -> bool:
         """

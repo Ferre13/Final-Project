@@ -121,7 +121,7 @@ LIFE_SPRITE = (0, 32, 112, 16, 16, 0)
 SCORE_X = SCREEN_WIDTH - 20
 SCORE_Y = 3
 LIVES_X = SCREEN_WIDTH // 2 - 28
-LIVES_Y = 3
+LIVES_Y = 1
 
 CONVEYOR_Y_START = SCREEN_HEIGHT - 16
 CONVEYOR_DISTANCE = 11      # Vertical distance between conveyor belts
@@ -157,6 +157,13 @@ FLOORS_EXTREME = [CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE) for i in range(NUM_
 
 FLOOR_Y_LEVELS = [GROUND_START_Y] + [(y + 2) for y in FLOORS_EXTREME]
 
+# Conveyor speeds
 SLOW_SPEED = 1.0
 MEDIUM_SPEED = 1.5
 HIGH_SPEED = 2.0
+
+# Game states
+PLAYING = "playing"
+TRUCK_SEQUENCE = "truck_sequence"
+BOSS_SEQUENCE = "boss_sequence"
+GAME_OVER = "game_over"

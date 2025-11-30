@@ -43,14 +43,15 @@ class LevelSign(GameObject):
     """A sign in the bottom-left that displays the current difficulty."""
     def __init__(self, difficulty: str, x: int, y: int):
         super().__init__(x, y)
-        self.__sprite = self.__get_sprite(difficulty)
+        self.difficulty = difficulty
 
-    def __get_sprite(self, difficulty: str):
+    @property
+    def __sprite(self):
         """Selects the correct sprite based on the difficulty string."""
-        if difficulty == "EASY": return constants.LEVEL_EASY
-        elif difficulty == "MEDIUM": return constants.LEVEL_MEDIUM
-        elif difficulty == "EXTREME": return constants.LEVEL_EXTREME
-        elif difficulty == "CRAZY": return constants.LEVEL_CRAZY
+        if self.difficulty == "EASY": return constants.LEVEL_EASY
+        elif self.difficulty == "MEDIUM": return constants.LEVEL_MEDIUM
+        elif self.difficulty == "EXTREME": return constants.LEVEL_EXTREME
+        elif self.difficulty == "CRAZY": return constants.LEVEL_CRAZY
         return constants.LEVEL_EASY
 
     def draw(self):

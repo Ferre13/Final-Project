@@ -27,32 +27,46 @@ class Truck:
         self.__timer = 0
 
     @property
-    def x(self) -> float: return self.__x
+    def x(self) -> int: 
+        return self.__x
     @x.setter
-    def x(self, x): self.__x = float(x)
-
+    def x(self, x): 
+        if not isinstance(x, (int, float)):
+            raise TypeError("x must be a number")
+        self.__x = int(x)
     @property
-    def y(self) -> float: return self.__y
+    def y(self) -> int: 
+        return self.__y
     @y.setter
-    def y(self, y): self.__y = float(y)
+    def y(self, y): 
+        if not isinstance(y, (int, float)):
+            raise TypeError("y must be a number")
+        self.__y = int(y)
+
+    # Use read-only properties for width and height
+    @property
+    def width(self) -> int: 
+        return constants.TRUCK_1[3]
+    @property
+    def height(self) -> int: 
+        return constants.TRUCK_1[4]
 
     @property
-    def width(self) -> int: return self.__width
-    @property
-    def height(self) -> int: return self.__height
-
-    @property
-    def packages_count(self) -> int: return self.__packages_count
+    def packages_count(self) -> int: 
+        return self.__packages_count
     @packages_count.setter
     def packages_count(self, value: int):
-        if not isinstance(value, int): raise TypeError("Count must be an integer")
+        if not isinstance(value, int): 
+            raise TypeError("Count must be an integer")
         self.__packages_count = value
 
     @property
-    def is_delivering(self) -> bool: return self.__is_delivering
+    def is_delivering(self) -> bool: 
+        return self.__is_delivering
     @is_delivering.setter
     def is_delivering(self, value: bool):
-        if not isinstance(value, bool): raise TypeError("Must be a boolean")
+        if not isinstance(value, bool): 
+            raise TypeError("Must be a boolean")
         self.__is_delivering = value
 
     def receive_package(self) -> bool:

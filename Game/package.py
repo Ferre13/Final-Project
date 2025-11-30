@@ -20,10 +20,6 @@ class Package:
         self.current_conveyor = start_conveyor
         self.floor_index = floor_index
         
-        self.__sprite_list = self.__get_sprite_list()
-        self.__width = self.__sprite_list[0][3]
-        self.__height = self.__sprite_list[0][4]
-        
         # Set initial position based on the conveyor's direction.
         # This ensures the package spawns at the "start" of the belt.
         if self.current_conveyor.direction == 1:
@@ -47,9 +43,16 @@ class Package:
     def y(self, value: float): self.__y = float(value)
 
     @property
-    def width(self) -> int: return self.__width
+    def width(self) -> int:
+        """Returns the width of the package's sprite."""
+        # Assumes all package sprites have a similar base width.
+        return constants.PCK_LVL1[3]
+
     @property
-    def height(self) -> int: return self.__height
+    def height(self) -> int:
+        """Returns the height of the package's sprite."""
+        # Assumes all package sprites have a similar base height.
+        return constants.PCK_LVL1[4]
 
     @property
     def floor_index(self) -> int: return self.__floor_index
@@ -65,7 +68,8 @@ class Package:
         if not isinstance(value, Conveyor): raise TypeError("Must be a Conveyor object")
         self.__current_conveyor = value
 
-    def __get_sprite_list(self) -> list:
+    @property
+    def __sprite_list(self) -> list:
         """Returns the appropriate list of package sprites based on difficulty."""
         if self.__difficulty == "EASY": return constants.PCK_EASY_SPRITES
         elif self.__difficulty == "MEDIUM": return constants.PCK_MEDIUM_SPRITES

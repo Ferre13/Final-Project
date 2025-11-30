@@ -16,7 +16,7 @@ class Game:
         pyxel.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, title="Mario Bros Game")
         pyxel.load(constants.SPRITES_FILE)
         
-        difficulty = "EASY"
+        difficulty = "EXTREME"
         
         # Use the Factory to create all game objects
         factory = Factory(difficulty)

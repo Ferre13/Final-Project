@@ -124,7 +124,7 @@ class Board:
 
     def __update_playing(self):
         """Handles game logic when the game is in the 'PLAYING' state."""
-        self.package_logic.update()
+        self.package_manager.update()
         self.mario.update()
         self.luigi.update()
 

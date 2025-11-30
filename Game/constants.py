@@ -8,6 +8,7 @@ TRUCK_SPEED = 2               # pixels per frame
 BOSS_YELL_DURATION = 60       # frames
 DOOR_ANIMATION_SPEED = 10     # frames
 SPAWN_TIMER_GAP = 45          # Minimum frames between package spawns
+TRANSFER_ANIMATION_TIME = 18  # Frames for the character's package transfer animation
 
 POINTS_PER_PACKAGE = 1
 POINTS_PER_TRUCK = 10
@@ -35,6 +36,7 @@ CHAR_STATE_PCK = 2
 CHAR_STATE_BOSS = 3
 CHAR_STATE_REST1 = 4
 CHAR_STATE_REST2 = 5
+CHAR_STATE_TRANSFER = 6
 
 PKG_STATE_MOVING = "moving"
 PKG_STATE_FALLING = "falling"
@@ -127,6 +129,8 @@ LEVEL_EASY = (0, 33, 160, 15, 5, 0)
 LEVEL_MEDIUM = (0, 32, 166, 21, 5, 0)
 LEVEL_EXTREME = (0, 32, 172, 27, 5, 0) 
 LEVEL_CRAZY = (0, 32, 178, 19, 5, 0)
+GAME_OVER_SPRITE = (2, 0, 0, 62, 36, 0)
+
 NUM_1 = (1, 2, 0, 4, 7, 0) 
 NUM_2 = (1, 10, 0, 4, 7, 0)
 NUM_3 = (1, 2, 8, 4, 7, 0) 
@@ -173,11 +177,23 @@ NUM_EASY_CRAZY = 5
 NUM_MEDIUM = 7
 NUM_EXTREME = 9
 
-FLOORS_EASY_CRAZY = [CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE) for i in range(NUM_EASY_CRAZY)]
-FLOORS_MEDIUM = [CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE) for i in range(NUM_MEDIUM)]
-FLOORS_EXTREME = [CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE) for i in range(NUM_EXTREME)]
+# Dynamically calculate the Y position for each conveyor floor
+FLOORS_EASY_CRAZY = []
+for i in range(NUM_EASY_CRAZY):
+    FLOORS_EASY_CRAZY.append(CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE))
 
-FLOOR_Y_LEVELS = [GROUND_START_Y] + [(y + 2) for y in FLOORS_EXTREME]
+FLOORS_MEDIUM = []
+for i in range(NUM_MEDIUM):
+    FLOORS_MEDIUM.append(CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE))
+
+FLOORS_EXTREME = []
+for i in range(NUM_EXTREME):
+    FLOORS_EXTREME.append(CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE))
+
+# This list is used by characters to know where their feet should be on each floor
+FLOOR_Y_LEVELS = [GROUND_START_Y]
+for y in FLOORS_EXTREME:
+    FLOOR_Y_LEVELS.append(y + 2)
 
 # Conveyor speeds
 SLOW_SPEED = 1.0
@@ -189,3 +205,4 @@ PLAYING = "playing"
 TRUCK_SEQUENCE = "truck_sequence"
 BOSS_SEQUENCE = "boss_sequence"
 GAME_OVER = "game_over"
+MAIN_MENU = "main_menu"

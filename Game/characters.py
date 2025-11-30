@@ -25,6 +25,7 @@ class Character:
         self.original_x = x 
         self.rest_timer = 0
         self.floor = 0
+        self.transfer_timer = 0
         
         # The maximum floor index the character can be on.
         self.max_floor_index = num_floors
@@ -101,11 +102,15 @@ class Character:
 
     def can_receive_package(self, package_floor: int) -> bool:
         """
-        Checks if the character is in the correct position to receive a package.
+        Checks if the character is in the correct position and state to receive a package.
         
         :param package_floor: The floor index of the package.
         :return: True if the character can receive the package, False otherwise.
         """
+        # A character can only start a transfer if they are standing still.
+        if self.state != constants.CHAR_STATE_STATIC:
+            return False
+            
         if self.floor != package_floor: 
             return False
         
@@ -150,30 +155,30 @@ class Character:
         self.x = self.original_x
         self.update()
 
+    def start_transfer_animation(self):
+        """Starts the two-part package transfer animation."""
+        # This can only be called when the character is static,
+        # ensuring animations don't improperly interrupt each other.
+        if self.state == constants.CHAR_STATE_STATIC:
+            self.state = constants.CHAR_STATE_TRANSFER
+            # Set the timer for the full two-part animation.
+            self.transfer_timer = constants.TRANSFER_ANIMATION_TIME * 2
+
     def __animate_rest(self):
         """Animates the character while in the resting state."""
         self.rest_timer += 1
         offset = (self.rest_timer // 15) % 2
         self.state = constants.CHAR_STATE_REST1 + offset
 
-    def __handle_input(self):
-        """Handles keyboard input for movement, inverting controls for 'CRAZY' mode."""
-        if self.__difficulty == "CRAZY":
-            # Inverted Controls
-            if pyxel.btnp(self.key_up): 
-                self.move_down()
-            elif pyxel.btnp(self.key_down): 
-                self.move_up()
-        else:
-            # Normal Controls
-            if pyxel.btnp(self.key_up): 
-                self.move_up()
-            elif pyxel.btnp(self.key_down): 
-                self.move_down()
-
     def __update_physics_floor(self):
         """Calculates the character's y-position based on their current floor."""
-        current_sprite = self.__sprites[self.state]
+        # Determine which sprite to use for height calculation.
+        sprite_index = self.state
+        if self.state == constants.CHAR_STATE_TRANSFER:
+            # For height calculation, assume the tallest possible sprite in the animation.
+            sprite_index = constants.CHAR_STATE_PCK
+            
+        current_sprite = self.__sprites[sprite_index]
         sprite_h = current_sprite[4]
         safe_floor = min(self.floor, len(constants.FLOOR_Y_LEVELS) - 1)
         self.y = constants.FLOOR_Y_LEVELS[safe_floor] - sprite_h
@@ -184,12 +189,40 @@ class Character:
         self.y = constants.BOSS_Y - boss_sprite_h
 
     def update(self):
-        """Main update method for the character."""
+        """
+        Main update method for the character. It prioritizes states and player input
+        to determine the character's actions for the frame.
+        """
+        # States that cannot be interrupted by player input
         if self.state in [constants.CHAR_STATE_REST1, constants.CHAR_STATE_REST2]:
             self.__animate_rest()
-        elif self.state != constants.CHAR_STATE_BOSS:
-            self.__handle_input()
+        elif self.state == constants.CHAR_STATE_BOSS:
+            # Physics are handled below, no other logic for this state
+            pass
+        
+        # If not in a locked state, check for player input, which takes priority
+        else:
+            up_pressed = pyxel.btnp(self.key_up)
+            down_pressed = pyxel.btnp(self.key_down)
 
+            if self.__difficulty == "CRAZY":
+                up_pressed, down_pressed = down_pressed, up_pressed
+
+            if up_pressed:
+                self.state = constants.CHAR_STATE_STATIC  # Interrupts transfer animation
+                self.move_up()
+            elif down_pressed:
+                self.state = constants.CHAR_STATE_STATIC  # Interrupts transfer animation
+                self.move_down()
+            
+            # If no input was detected, handle the transfer animation timer
+            elif self.state == constants.CHAR_STATE_TRANSFER:
+                self.transfer_timer -= 1
+                if self.transfer_timer <= 0:
+                    self.state = constants.CHAR_STATE_STATIC
+
+        # --- Update Physics ---
+        # Update vertical position based on the final state for this frame.
         if self.state == constants.CHAR_STATE_BOSS:
             self.__update_physics_boss()
         else:
@@ -197,10 +230,27 @@ class Character:
 
     def draw(self):
         """Draws the character's current sprite at its x, y position."""
-        img, u, v, w, h, colkey = self.__sprites[self.state]
-        draw_w = w
-        # Mario's sprite faces the other way on the ground floor, so we flip it
-        # by drawing with a negative width.
-        if self.name == "Mario" and self.floor == 0 and self.state == constants.CHAR_STATE_STATIC:
-             draw_w = -w
-        pyxel.blt(self.x, self.y, img, u, v, draw_w, h, colkey)
+        sprite_index = self.state
+        draw_w_mod = 1 # Used to flip sprite horizontally
+
+        # If in the transfer animation, choose the sprite based on the timer.
+        if self.state == constants.CHAR_STATE_TRANSFER:
+            # First half of animation: "getting ready" sprite (_WAIT)
+            # The actual transfer happens at the midpoint of the animation.
+            if self.transfer_timer > constants.TRANSFER_ANIMATION_TIME:
+                # Special case for Mario on floor 0
+                if self.name == "Mario" and self.floor == 0:
+                    sprite_index = constants.CHAR_STATE_PCK # Use PCK sprite
+                    draw_w_mod = -1 # And flip it
+                else:
+                    sprite_index = constants.CHAR_STATE_WAIT
+            # Second half of animation: "has package" sprite (_PCK)
+            else:
+                sprite_index = constants.CHAR_STATE_PCK
+        
+        # Flip the static sprite for Mario on the ground floor
+        elif self.name == "Mario" and self.floor == 0 and self.state == constants.CHAR_STATE_STATIC:
+             draw_w_mod = -1
+             
+        img, u, v, w, h, colkey = self.__sprites[sprite_index]
+        pyxel.blt(self.x, self.y, img, u, v, w * draw_w_mod, h, colkey)

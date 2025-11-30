@@ -51,16 +51,39 @@ class PackageManager:
                 self.spawn_timer = 0
 
     def __update_packages(self):
-        """Updates all packages and handles their status changes."""
+        """
+        Updates all packages, checks their status, and tells the characters
+        when to start their transfer animations.
+        """
         for p in self.board.packages[:]:
-            status = p.update() 
+            # First, check for animation triggers
+            char_to_animate = None
+            if self.board.mario.can_receive_package(p.floor_index):
+                char_to_animate = self.board.mario
+            elif self.board.luigi.can_receive_package(p.floor_index):
+                char_to_animate = self.board.luigi
+            
+            if char_to_animate:
+                distance_to_end = 0
+                direction = p.current_conveyor.direction
+                speed = p.current_conveyor.speed
+                if direction == 1:
+                    distance_to_end = p.current_conveyor.end_x - (p.x + p.width)
+                else:
+                    distance_to_end = p.x - p.current_conveyor.x
+                
+                if speed > 0 and (distance_to_end / speed) <= constants.TRANSFER_ANIMATION_TIME:
+                    char_to_animate.start_transfer_animation()
 
-            if status == constants.PKG_STATUS_FALLEN_MARIO:
+            # Now, update the package and handle its status
+            status = p.update()
+            
+            if status == constants.PKG_STATUS_REACHED_END:
+                self.__handle_package_transfer(p)
+            elif status == constants.PKG_STATUS_FALLEN_MARIO:
                 self.__handle_failure(p, "Mario")
             elif status == constants.PKG_STATUS_FALLEN_LUIGI:
                 self.__handle_failure(p, "Luigi")
-            elif status == constants.PKG_STATUS_REACHED_END:
-                self.__handle_package_transfer(p)
 
     def __handle_failure(self, p: Package, culprit: str):
         """Handles the consequences of a package falling."""
@@ -73,18 +96,27 @@ class PackageManager:
             self.board.active_punishment(culprit)
 
     def __handle_package_transfer(self, p: Package):
-        """Handles the logic for transferring a package between conveyors or to the truck."""
+        """
+        Handles the logic for transferring a package between conveyors or to the truck.
+        """
         mario = self.board.mario
         luigi = self.board.luigi
         
-        if mario.can_receive_package(p.floor_index) or luigi.can_receive_package(p.floor_index):
+        # This check is now simplified because the animation state is handled
+        # by the character itself. We just check if they are on the right floor.
+        can_transfer = False
+        if mario.floor == p.floor_index and (p.floor_index % 2 == 0):
+            can_transfer = True
+        elif luigi.floor == p.floor_index and (p.floor_index % 2 != 0):
+            can_transfer = True
+
+        if can_transfer:
             next_idx = p.floor_index + 1
             
             if next_idx < len(self.board.conveyors):
                 p.advance_to_conveyor(self.board.conveyors[next_idx])
                 self.board.score += constants.POINTS_PER_PACKAGE 
             else:
-                # Package reaches the final conveyor and is delivered to the truck
                 if self.board.truck.receive_package():
                     self.board.state = constants.TRUCK_SEQUENCE
                 self.board.packages.remove(p)

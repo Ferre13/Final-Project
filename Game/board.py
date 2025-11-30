@@ -161,7 +161,7 @@ class Board:
     def __update_game_over(self):
         """Handles the game over screen and input for restarting."""
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN):
-            self.reset_game()
+            self.state = constants.MAIN_MENU
 
     # --- Main Draw Logic ---
 
@@ -180,15 +180,24 @@ class Board:
 
     def __draw_playing(self):
         """Draws all the elements for the main game screen."""
-        for w in self.windows: w.draw()
+        for w in self.windows:
+            w.draw()
+        
         if self.machine: self.machine.draw()
         if self.exit_signal: self.exit_signal.draw()
         if self.door_left: self.door_left.draw()
         if self.door_right: self.door_right.draw()
         if self.boss: self.boss.draw()
-        for p in self.packages: p.draw()
-        for platform in self.platforms: platform.draw()
-        for conv in self.conveyors: conv.draw()
+
+        for p in self.packages:
+            p.draw()
+
+        for platform in self.platforms:
+            platform.draw()
+
+        for conv in self.conveyors:
+            conv.draw()
+
         if self.vertical_structure: self.vertical_structure.draw()
         if self.level_sign: self.level_sign.draw()
         if self.mario: self.mario.draw()
@@ -201,8 +210,25 @@ class Board:
 
     def __draw_game_over(self):
         """Draws the game over screen."""
-        pyxel.text(constants.CENTER_SCREEN - 30, constants.CENTER_SCREEN - 10, "GAME OVER", 8)
-        pyxel.text(constants.CENTER_SCREEN - 40, constants.CENTER_SCREEN + 5, "PRESS SPACE TO RESTART", 7)
-        
-        # Show final score
-        self.game_info.draw_score(self.score)
+        # Calculate position to center the game over image
+        sprite = constants.GAME_OVER_SPRITE
+        img_w = sprite[3]
+        img_h = sprite[4]
+        x_img = (constants.SCREEN_WIDTH - img_w) / 2
+        y_img = (constants.SCREEN_HEIGHT - img_h) / 2 - 10 # Slightly above center
+
+        # Draw the 'Game Over' sprite
+        pyxel.blt(x_img, y_img, *sprite)
+
+        # Reposition the score display below the image
+        score_y = y_img + img_h + 5
+        score_str = str(self.score)
+        score_w = len(score_str) * 4 # Approximate width
+        score_x = (constants.SCREEN_WIDTH - score_w) / 2
+        self.game_info.draw_score(self.score, score_x, score_y)
+
+        # Draw the restart text below the score
+        restart_text = "PRESS SPACE TO RETURN TO MENU"
+        text_w = len(restart_text) * 4 # Approximate width
+        text_x = (constants.SCREEN_WIDTH - text_w) / 2
+        pyxel.text(text_x, score_y + 10, restart_text, 7)

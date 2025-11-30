@@ -14,23 +14,32 @@ class GameInfo:
         self.__number_sprites = constants.NUMBER_SPRITES
         self.__life_sprite = constants.LIFE_SPRITE
 
-    def draw_score(self, score: int):
+    def draw_score(self, score: int, x: int = None, y: int = None):
         """
-        Draws the player's current score in the top-right corner of the screen.
+        Draws the player's current score. Defaults to the top-right corner,
+        but can draw at a specified x, y position.
 
         :param score: The current score to be displayed.
+        :param x: (Optional) The x-coordinate to draw the score at.
+        :param y: (Optional) The y-coordinate to draw the score at.
         """
         # We have to convert the score to a string to access each digit individually
         score_str = str(score)
-        x_offset = constants.SCORE_X
         
+        # Use default coordinates if none are provided
+        x_offset = x if x is not None else constants.SCORE_X
+        y_pos = y if y is not None else constants.SCORE_Y
+        
+        # If using default coordinates, also draw the "SCORE" label
+        if x is None:
+            pyxel.text(x_offset - 23, y_pos + 1, "SCORE", 7)
 
         # Draw each digit of the score using its sprite
         for char in score_str:
             digit = int(char)
             img, u, v, w, h, colkey = self.__number_sprites[digit]
             
-            pyxel.blt(x_offset, constants.SCORE_Y, img, u, v, w, h, colkey)
+            pyxel.blt(x_offset, y_pos, img, u, v, w, h, colkey)
             # Move the x_offset for the next digit, adding the width and 1 pixel for spacing
             x_offset += (w + 1)
 

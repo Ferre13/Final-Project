@@ -6,7 +6,7 @@ class Package:
     """
     Represents a package in the factory. It manages its own state (moving, falling),
     position, and visual appearance. Its update method returns a status code
-    to the PackageLogic handler to signal important events.
+    to the PackageManager to signal important events.
     """
     def __init__(self, difficulty: str, start_conveyor: Conveyor, floor_index: int):
         """
@@ -21,7 +21,6 @@ class Package:
         self.floor_index = floor_index
         
         # Set initial position based on the conveyor's direction.
-        # This ensures the package spawns at the "start" of the belt.
         if self.current_conveyor.direction == 1:
              self.x = self.current_conveyor.x
         else:
@@ -30,7 +29,8 @@ class Package:
         self.y = self.current_conveyor.y - self.height
         
         self.state = constants.PKG_STATE_MOVING
-        self.level_index = 0  # Used to determine which package sprite to show
+        self.level_index = 0
+        self.last_direction = self.current_conveyor.direction
 
     @property
     def x(self) -> float: return self.__x
@@ -45,13 +45,11 @@ class Package:
     @property
     def width(self) -> int:
         """Returns the width of the package's sprite."""
-        # Assumes all package sprites have a similar base width.
         return constants.PCK_LVL1[3]
 
     @property
     def height(self) -> int:
         """Returns the height of the package's sprite."""
-        # Assumes all package sprites have a similar base height.
         return constants.PCK_LVL1[4]
 
     @property
@@ -86,7 +84,6 @@ class Package:
         self.current_conveyor = next_conveyor
         self.floor_index += 1
         
-        # Position the package slightly over the edge to make the transition look smooth.
         if self.current_conveyor.direction == 1: 
             self.x = self.current_conveyor.x - constants.OVERHANG_LIMIT
         else: 
@@ -103,69 +100,57 @@ class Package:
         """
         Updates the package's state and position.
         
-        :return: A status code (from constants) to inform the PackageLogic handler
-                 of what action to take (e.g., package reached end, package fell).
+        :return: A status code to inform the PackageManager of what action to take.
         """
-        # --- State 1: FALLING ---
         if self.state == constants.PKG_STATE_FALLING:
             self.y += constants.PACKAGE_FALL_SPEED
-            
-            # If the package is off the bottom of the screen, determine who is to blame.
             if self.y > constants.SCREEN_HEIGHT:
-                # Blame is based on which character's "territory" the package was in.
-                # Mario handles even floors (0, 2, ...), Luigi handles odd floors (1, 3, ...).
                 if self.floor_index % 2 == 0:
                     return constants.PKG_STATUS_FALLEN_MARIO
                 else:
                     return constants.PKG_STATUS_FALLEN_LUIGI
-            return constants.PKG_STATUS_MOVING # Still falling, no special action needed yet.
+            return constants.PKG_STATUS_MOVING
 
-        # --- State 2: MOVING ---
         elif self.state == constants.PKG_STATE_MOVING:
             speed = self.current_conveyor.speed
             direction = self.current_conveyor.direction
+            self.last_direction = direction
             
             prev_x = self.x
             self.x += speed * direction
 
-            # Change the package's visual appearance (level) as it crosses the center.
             trigger_x = constants.CENTER_SCREEN
             if (direction == -1 and prev_x > trigger_x and self.x <= trigger_x) or \
                (direction == 1 and prev_x < trigger_x and self.x >= trigger_x):
                 self.level_index += 1
-
-            # Check if the package has reached the end of the conveyor.
+            
             reached_end = False
-            if direction == 1: # Moving right
-                limit = self.current_conveyor.end_x + constants.OVERHANG_LIMIT
-                if self.x + self.width >= limit:
-                    self.x = limit - self.width 
+            if direction == 1:
+                if self.x + self.width >= self.current_conveyor.end_x + constants.OVERHANG_LIMIT:
                     reached_end = True
-            else: # Moving left
-                limit = self.current_conveyor.x - constants.OVERHANG_LIMIT
-                if self.x <= limit:
-                    self.x = limit 
+            else:
+                if self.x <= self.current_conveyor.x - constants.OVERHANG_LIMIT:
                     reached_end = True
             
             if reached_end:
                 return constants.PKG_STATUS_REACHED_END
             
-            return constants.PKG_STATUS_MOVING # Still moving, no special action needed.
+            return constants.PKG_STATUS_MOVING
 
     def draw(self):
         """Draws the package with the correct sprite based on its level and state."""
-        # Each "level" of a package has two sprites: normal and falling.
-        # We find the base index for the current level.
         sprite_idx = self.level_index * 2
         
-        # Ensure we don't go out of bounds of the sprite list.
         if sprite_idx >= len(self.__sprite_list): 
             sprite_idx = len(self.__sprite_list) - 2
         
-        # If the package is falling, use the second sprite for the current level.
         if self.state == constants.PKG_STATE_FALLING:
              sprite_idx += 1 
              
         sprite = self.__sprite_list[sprite_idx]
         img, u, v, w, h, colkey = sprite
+
+        if self.state == constants.PKG_STATE_FALLING and self.last_direction == 1:
+            w = -w
+
         pyxel.blt(int(self.x), int(self.y), img, u, v, w, h, colkey)

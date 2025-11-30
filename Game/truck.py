@@ -19,8 +19,6 @@ class Truck:
         self.is_delivering = False
         
         self.__sprites = constants.TRUCK_SPRITES
-        self.__width = constants.TRUCK_1[3]
-        self.__height = constants.TRUCK_1[4]
         
         # Internal state machine for the delivery animation
         self.__phase = 0 

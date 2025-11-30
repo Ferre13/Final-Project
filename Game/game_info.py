@@ -1,24 +1,18 @@
 import pyxel
 import constants
 
-class HUD:
+class GameInfo:
     """
-    Manages the Heads-Up Display (HUD), which shows the player's score
+    Manages the display of game information, such as the player's score
     and remaining lives on the screen.
     """
     def __init__(self):
-        """Initializes the HUD. Currently does not need to store any state."""
-        pass
-
-    @property
-    def __number_sprites(self):
-        """Returns the list of number sprites from constants."""
-        return constants.NUMBER_SPRITES
-
-    @property
-    def __life_sprite(self):
-        """Returns the life icon sprite from constants."""
-        return constants.LIFE_SPRITE
+        """
+        Initializes the HUD by loading necessary sprite lists from constants
+        and storing them as private instance attributes.
+        """
+        self.__number_sprites = constants.NUMBER_SPRITES
+        self.__life_sprite = constants.LIFE_SPRITE
 
     def draw_score(self, score: int):
         """

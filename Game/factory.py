@@ -22,9 +22,9 @@ class Factory:
         self.difficulty = difficulty
         if self.difficulty in ["EASY", "CRAZY"]: 
             self.floor_y_positions = constants.FLOORS_EASY_CRAZY
-        elif self.difficulty == "MEDIUM": 
+        elif self.difficulty == "MEDIUM":
             self.floor_y_positions = constants.FLOORS_MEDIUM
-        elif self.difficulty == "EXTREME": 
+        elif self.difficulty == "EXTREME":
             self.floor_y_positions = constants.FLOORS_EXTREME
         else:
             self.floor_y_positions = constants.FLOORS_EASY_CRAZY
@@ -68,11 +68,11 @@ class Factory:
                 direction, self.difficulty, level_idx
             ))
 
-        self._create_extra_platforms(ground_y, truck)
+        self.__create_extra_platforms(ground_y, truck)
         
         return truck, exit_signal, vertical_structure, self.platforms, self.conveyors
 
-    def _create_extra_platforms(self, ground_start_y: int, truck: Truck):
+    def __create_extra_platforms(self, ground_start_y: int, truck: Truck):
         """Creates decorative platforms for the ground and boss area."""
         sprite_h = constants.FLOOR_SPRITE[4]
         truck_floor_y = truck.y + truck.height 

@@ -1,11 +1,11 @@
 import constants
 from package import Package
 
-class PackageLogic:
+class PackageManager:
     """
     Manages all logic related to packages, including spawning, updating,
-    and handling transfers and failures. This class isolates package-specific
-    logic from the main board.
+    and handling transfers and failures. This class encapsulates package-specific
+    logic and acts as a manager for the main board.
     """
     def __init__(self, board):
         """
@@ -19,10 +19,10 @@ class PackageLogic:
 
     def update(self):
         """The main update method for all package-related logic."""
-        self._spawn_package()
-        self._update_packages()
+        self.__spawn_package()
+        self.__update_packages()
 
-    def _calculate_max_packages(self) -> int:
+    def __calculate_max_packages(self) -> int:
         """Calculates the maximum number of packages allowed on screen based on score."""
         limit = constants.INITIAL_PACKAGE_LIMIT
         difficulty = self.board.difficulty
@@ -39,10 +39,10 @@ class PackageLogic:
             
         return limit
 
-    def _spawn_package(self):
+    def __spawn_package(self):
         """Handles the logic for spawning new packages onto the first conveyor."""
         self.spawn_timer += 1
-        max_packages = self._calculate_max_packages()
+        max_packages = self.__calculate_max_packages()
         
         if self.board.conveyors and len(self.board.packages) < max_packages:
             if not self.board.packages or self.spawn_timer > constants.SPAWN_TIMER_GAP:
@@ -50,19 +50,19 @@ class PackageLogic:
                 self.board.packages.append(new_pck)
                 self.spawn_timer = 0
 
-    def _update_packages(self):
+    def __update_packages(self):
         """Updates all packages and handles their status changes."""
         for p in self.board.packages[:]:
             status = p.update() 
 
             if status == constants.PKG_STATUS_FALLEN_MARIO:
-                self._handle_failure(p, "Mario")
+                self.__handle_failure(p, "Mario")
             elif status == constants.PKG_STATUS_FALLEN_LUIGI:
-                self._handle_failure(p, "Luigi")
+                self.__handle_failure(p, "Luigi")
             elif status == constants.PKG_STATUS_REACHED_END:
-                self._handle_package_transfer(p)
+                self.__handle_package_transfer(p)
 
-    def _handle_failure(self, p: Package, culprit: str):
+    def __handle_failure(self, p: Package, culprit: str):
         """Handles the consequences of a package falling."""
         self.board.packages.remove(p)
         self.board.failures += 1
@@ -72,7 +72,7 @@ class PackageLogic:
         else:
             self.board.active_punishment(culprit)
 
-    def _handle_package_transfer(self, p: Package):
+    def __handle_package_transfer(self, p: Package):
         """Handles the logic for transferring a package between conveyors or to the truck."""
         mario = self.board.mario
         luigi = self.board.luigi

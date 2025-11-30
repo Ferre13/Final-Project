@@ -1,7 +1,7 @@
 import pyxel
 import constants
-from hud import HUD
-from package_logic import PackageLogic
+from game_info import GameInfo
+from package_manager import PackageManager
 
 class Board:
     """
@@ -35,7 +35,7 @@ class Board:
         
         # Initialize board state and logic handlers
         self.init_configuration()
-        self.package_logic = PackageLogic(self)
+        self.package_manager = PackageManager(self)
 
     def init_configuration(self):
         """Sets up the initial configuration and state of the board."""
@@ -44,7 +44,7 @@ class Board:
         self.packages = []
         self.punished_char = None
         self.deliveries_count = 0
-        self.hud = HUD()
+        self.game_info = GameInfo()
         self.state = constants.PLAYING
 
     def reset_game(self):
@@ -196,8 +196,8 @@ class Board:
         if self.truck: self.truck.draw()
 
         # HUD is drawn on top of everything
-        self.hud.draw_score(self.score)
-        self.hud.draw_lives(self.failures)
+        self.game_info.draw_score(self.score)
+        self.game_info.draw_lives(self.failures)
 
     def __draw_game_over(self):
         """Draws the game over screen."""
@@ -205,4 +205,4 @@ class Board:
         pyxel.text(constants.CENTER_SCREEN - 40, constants.CENTER_SCREEN + 5, "PRESS SPACE TO RESTART", 7)
         
         # Show final score
-        self.hud.draw_score(self.score)
+        self.game_info.draw_score(self.score)

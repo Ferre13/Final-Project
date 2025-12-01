@@ -103,22 +103,14 @@ class Character:
     def can_receive_package(self, package_floor: int) -> bool:
         """
         Checks if the character is in the correct position and state to receive a package.
-        
-        :param package_floor: The floor index of the package.
-        :return: True if the character can receive the package, False otherwise.
         """
-        # A character can only start a transfer if they are standing still.
-        if self.state != constants.CHAR_STATE_STATIC:
-            return False
-            
-        if self.floor != package_floor: 
+        if self.state != constants.CHAR_STATE_STATIC or self.floor != package_floor:
             return False
         
-        # Mario handles even floors (0, 2, 4...), Luigi handles odd floors (1, 3, 5...)
-        if self.name == "Mario": 
-            return (package_floor % 2 == 0)
-        else: 
-            return (package_floor % 2 != 0)
+        is_mario_turn = self.name == "Mario" and package_floor % 2 == 0
+        is_luigi_turn = self.name == "Luigi" and package_floor % 2 != 0
+        
+        return is_mario_turn or is_luigi_turn
 
     def move_up(self):
         """Moves the character up by two floors if possible."""
@@ -144,7 +136,7 @@ class Character:
 
     def enter_punishment_mode(self):
         """Puts the character into the punishment state (after a failure)."""
-        self.state = constants.CHAR_STATE_BOSS
+        self.state = constants.CHAR_STATE_PUNISHED
         if self.name == "Mario": self.x = constants.PUNISH_MARIO_X
         else: self.x = constants.PUNISH_LUIGI_X
         self.__update_physics_boss()
@@ -155,13 +147,20 @@ class Character:
         self.x = self.original_x
         self.update()
 
+    def reset(self):
+        """Resets the character to its initial state and position."""
+        self.state = constants.CHAR_STATE_STATIC
+        self.x = self.original_x
+        if self.name == "Mario":
+            self.floor = 0
+        else:
+            self.floor = 1
+        self.update()
+
     def start_transfer_animation(self):
-        """Starts the two-part package transfer animation."""
-        # This can only be called when the character is static,
-        # ensuring animations don't improperly interrupt each other.
+        """Starts the two-part package transfer animation if the character is static."""
         if self.state == constants.CHAR_STATE_STATIC:
-            self.state = constants.CHAR_STATE_TRANSFER
-            # Set the timer for the full two-part animation.
+            self.state = constants.CHAR_STATE_TRANSFER_ANIM
             self.transfer_timer = constants.TRANSFER_ANIMATION_TIME * 2
 
     def __animate_rest(self):
@@ -172,11 +171,10 @@ class Character:
 
     def __update_physics_floor(self):
         """Calculates the character's y-position based on their current floor."""
-        # Determine which sprite to use for height calculation.
         sprite_index = self.state
-        if self.state == constants.CHAR_STATE_TRANSFER:
-            # For height calculation, assume the tallest possible sprite in the animation.
-            sprite_index = constants.CHAR_STATE_PCK
+        if self.state == constants.CHAR_STATE_TRANSFER_ANIM:
+            # For height calculation, use the 'has package' sprite as it's the tallest.
+            sprite_index = constants.CHAR_STATE_HAS_PACKAGE
             
         current_sprite = self.__sprites[sprite_index]
         sprite_h = current_sprite[4]
@@ -188,42 +186,42 @@ class Character:
         boss_sprite_h = self.__sprites[self.state][4]
         self.y = constants.BOSS_Y - boss_sprite_h
 
-    def update(self):
-        """
-        Main update method for the character. It prioritizes states and player input
-        to determine the character's actions for the frame.
-        """
-        # States that cannot be interrupted by player input
-        if self.state in [constants.CHAR_STATE_REST1, constants.CHAR_STATE_REST2]:
-            self.__animate_rest()
-        elif self.state == constants.CHAR_STATE_BOSS:
-            # Physics are handled below, no other logic for this state
-            pass
+    def __handle_player_input(self):
+        """Checks for and processes player input for movement."""
+        up_pressed = pyxel.btnp(self.key_up)
+        down_pressed = pyxel.btnp(self.key_down)
+
+        if self.__difficulty == "CRAZY":
+            up_pressed, down_pressed = down_pressed, up_pressed
+
+        if up_pressed:
+            self.state = constants.CHAR_STATE_STATIC
+            self.move_up()
+        elif down_pressed:
+            self.state = constants.CHAR_STATE_STATIC
+            self.move_down()
         
-        # If not in a locked state, check for player input, which takes priority
-        else:
-            up_pressed = pyxel.btnp(self.key_up)
-            down_pressed = pyxel.btnp(self.key_down)
+        elif self.state == constants.CHAR_STATE_TRANSFER_ANIM:
+            self.transfer_timer -= 1
+            if self.transfer_timer <= 0:
+                self.state = constants.CHAR_STATE_STATIC
 
-            if self.__difficulty == "CRAZY":
-                up_pressed, down_pressed = down_pressed, up_pressed
+    def update(self):
+        """Main update method for the character."""
+        # State-specific logic that cannot be interrupted by player input.
+        state_handlers = {
+            constants.CHAR_STATE_REST1: self.__animate_rest,
+            constants.CHAR_STATE_REST2: self.__animate_rest,
+        }
+        
+        handler = state_handlers.get(self.state)
+        if handler:
+            handler()
+        elif self.state != constants.CHAR_STATE_PUNISHED:
+            self.__handle_player_input()
 
-            if up_pressed:
-                self.state = constants.CHAR_STATE_STATIC  # Interrupts transfer animation
-                self.move_up()
-            elif down_pressed:
-                self.state = constants.CHAR_STATE_STATIC  # Interrupts transfer animation
-                self.move_down()
-            
-            # If no input was detected, handle the transfer animation timer
-            elif self.state == constants.CHAR_STATE_TRANSFER:
-                self.transfer_timer -= 1
-                if self.transfer_timer <= 0:
-                    self.state = constants.CHAR_STATE_STATIC
-
-        # --- Update Physics ---
-        # Update vertical position based on the final state for this frame.
-        if self.state == constants.CHAR_STATE_BOSS:
+        # Update physics based on the final state for this frame.
+        if self.state == constants.CHAR_STATE_PUNISHED:
             self.__update_physics_boss()
         else:
             self.__update_physics_floor()
@@ -233,22 +231,18 @@ class Character:
         sprite_index = self.state
         draw_w_mod = 1 # Used to flip sprite horizontally
 
-        # If in the transfer animation, choose the sprite based on the timer.
-        if self.state == constants.CHAR_STATE_TRANSFER:
-            # First half of animation: "getting ready" sprite (_WAIT)
-            # The actual transfer happens at the midpoint of the animation.
+        if self.state == constants.CHAR_STATE_TRANSFER_ANIM:
+            # First half of animation: show "getting ready" sprite.
             if self.transfer_timer > constants.TRANSFER_ANIMATION_TIME:
-                # Special case for Mario on floor 0
                 if self.name == "Mario" and self.floor == 0:
-                    sprite_index = constants.CHAR_STATE_PCK # Use PCK sprite
-                    draw_w_mod = -1 # And flip it
+                    sprite_index = constants.CHAR_STATE_HAS_PACKAGE
+                    draw_w_mod = -1 # Flipped
                 else:
-                    sprite_index = constants.CHAR_STATE_WAIT
-            # Second half of animation: "has package" sprite (_PCK)
+                    sprite_index = constants.CHAR_STATE_GETTING_PACKAGE
+            # Second half of animation: show "has package" sprite.
             else:
-                sprite_index = constants.CHAR_STATE_PCK
+                sprite_index = constants.CHAR_STATE_HAS_PACKAGE
         
-        # Flip the static sprite for Mario on the ground floor
         elif self.name == "Mario" and self.floor == 0 and self.state == constants.CHAR_STATE_STATIC:
              draw_w_mod = -1
              

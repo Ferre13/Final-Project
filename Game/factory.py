@@ -35,20 +35,20 @@ class Factory:
 
     def create_background(self):
         """Creates the static background elements."""
-        windows = [Window(20, 15), Window(215, 35), Window(215, 45)]
+        windows = [Window(20, 15), Window(215, 35), Window(215, 45)] # These are specific coordinates, not magic numbers
         machine = Machine(constants.MACHINE_X, constants.MACHINE_Y)
-        level_sign = LevelSign(self.difficulty, 4, constants.SCREEN_HEIGHT - 18)
+        level_sign = LevelSign(self.difficulty, constants.LEVEL_SIGN_X, constants.SCREEN_HEIGHT - constants.LEVEL_SIGN_Y_OFFSET)
         return windows, machine, level_sign
 
     def create_world(self):
         """Creates the dynamic elements of the game world like conveyors and platforms."""
         top_floor_y = self.floor_y_positions[-1]
-        truck = Truck(constants.TRUCK_X, top_floor_y - 5)
+        truck = Truck(constants.TRUCK_X, top_floor_y + constants.TRUCK_Y_OFFSET)
         truck.reset()
 
         ground_y = constants.SCREEN_HEIGHT - 6
-        exit_signal = ExitSignal(2, truck.y - 10)
-        vertical_structure = VerticalStructure(constants.STRUCT_X, 2, top_floor_y, ground_y)
+        exit_signal = ExitSignal(constants.EXIT_SIGNAL_X, truck.y + constants.EXIT_SIGNAL_Y_OFFSET)
+        vertical_structure = VerticalStructure(constants.STRUCT_X, constants.VERTICAL_STRUCTURE_WIDTH, top_floor_y, ground_y)
 
         self.conveyors.append(Conveyor(
             constants.CONVEYOR_0_X, self.floor_y_positions[0], 1, -1, self.difficulty, 0
@@ -76,7 +76,7 @@ class Factory:
         """Creates decorative platforms for the ground and boss area."""
         sprite_h = constants.FLOOR_SPRITE[4]
         truck_floor_y = truck.y + truck.height 
-        for h in range(2):
+        for h in range(constants.TRUCK_PLATFORM_ROWS):
             self.platforms.append(Platform(0, truck_floor_y + (h * sprite_h), 5, constants.FLOOR_SPRITE))
 
         self.platforms.append(Platform(0, constants.BOSS_Y, 4, constants.FLOOR_SPRITE))

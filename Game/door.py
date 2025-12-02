@@ -17,7 +17,7 @@ class Door:
         self.y = y
         self.state = constants.DOOR_STATE_CLOSED
         self.sprites = constants.DOOR_SPRITES
-        self.animation_timer = 0
+        self.animation_start_frame = 0
         
     @property
     def x(self) -> int: return self.__x
@@ -35,26 +35,24 @@ class Door:
         
     def open(self):
         """Starts the sequence to open the door."""
-        self.state = constants.DOOR_STATE_OPENING 
-        self.animation_timer = constants.DOOR_ANIMATION_SPEED
+        if self.state == constants.DOOR_STATE_CLOSED:
+            self.state = constants.DOOR_STATE_OPENING 
+            self.animation_start_frame = pyxel.frame_count
     
     def close(self):
         """Starts the sequence to close the door."""
-        self.state = constants.DOOR_STATE_CLOSING
-        self.animation_timer = constants.DOOR_ANIMATION_SPEED
+        if self.state == constants.DOOR_STATE_OPEN:
+            self.state = constants.DOOR_STATE_CLOSING
+            self.animation_start_frame = pyxel.frame_count
 
     def update(self):
-        """Updates the door's state based on its animation timer."""
-        # If opening, wait for the timer to finish, then switch to OPEN.
+        """Updates the door's state based on its animation timing."""
         if self.state == constants.DOOR_STATE_OPENING:
-            self.animation_timer -= 1
-            if self.animation_timer <= 0:
+            if pyxel.frame_count >= self.animation_start_frame + constants.DOOR_ANIMATION_SPEED:
                 self.state = constants.DOOR_STATE_OPEN
 
-        # If closing, wait for the timer to finish, then switch to CLOSED.
         elif self.state == constants.DOOR_STATE_CLOSING:
-            self.animation_timer -= 1
-            if self.animation_timer <= 0:
+            if pyxel.frame_count >= self.animation_start_frame + constants.DOOR_ANIMATION_SPEED:
                 self.state = constants.DOOR_STATE_CLOSED
             
     def draw(self):

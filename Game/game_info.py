@@ -32,7 +32,7 @@ class GameInfo:
         
         # If using default coordinates, also draw the "SCORE" label
         if x is None:
-            pyxel.text(x_offset - 23, y_pos + 1, "SCORE", 7)
+            pyxel.text(x_offset + constants.SCORE_LABEL_X_OFFSET, y_pos + constants.SCORE_LABEL_Y_OFFSET, "SCORE", constants.TEXT_COLOR)
 
         # Draw each digit of the score using its sprite
         for char in score_str:
@@ -41,7 +41,7 @@ class GameInfo:
             
             pyxel.blt(x_offset, y_pos, img, u, v, w, h, colkey)
             # Move the x_offset for the next digit, adding the width and 1 pixel for spacing
-            x_offset += (w + 1)
+            x_offset += (w + constants.DIGIT_SPACING)
 
     def draw_lives(self, failures: int):
         """
@@ -56,5 +56,5 @@ class GameInfo:
         for life in range(lives_left):
             img, u, v, w, h, colkey = self.__life_sprite
             # Calculate position for each life icon, adding 2 pixels for spacing
-            pos_x = constants.LIVES_X + (life * (w + 2))
+            pos_x = constants.LIVES_X + (life * (w + constants.LIFE_ICON_SPACING))
             pyxel.blt(pos_x, constants.LIVES_Y, img, u, v, w, h, colkey)

@@ -82,7 +82,7 @@ class Truck:
         """Kicks off the delivery animation sequence."""
         self.is_delivering = True  
         self.__phase = 0
-        self.__timer = constants.TRUCK_WAIT_TIME
+        self.__event_start_frame = pyxel.frame_count
 
     def reset(self):
         """Resets the truck to its initial state and position."""
@@ -100,8 +100,7 @@ class Truck:
 
         # Phase 0: A brief wait before the truck starts moving.
         if self.__phase == 0:
-            self.__timer -= 1
-            if self.__timer <= 0: 
+            if pyxel.frame_count >= self.__event_start_frame + constants.TRUCK_WAIT_TIME:
                 self.__phase = 1
 
         # Phase 1: Drive off the screen to the left.
@@ -109,13 +108,12 @@ class Truck:
             self.x -= constants.TRUCK_SPEED
             if self.x < -self.width:
                 self.__phase = 2
-                self.__timer = constants.TRUCK_OFFSCREEN_TIME
+                self.__event_start_frame = pyxel.frame_count  # Start offscreen timer
                 self.packages_count = 0  # Unload packages while off-screen
 
         # Phase 2: Wait for a short time while off-screen.
         elif self.__phase == 2:
-            self.__timer -= 1
-            if self.__timer <= 0:
+            if pyxel.frame_count >= self.__event_start_frame + constants.TRUCK_OFFSCREEN_TIME:
                 self.__phase = 3
                 self.x = -self.width
 

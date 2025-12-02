@@ -70,8 +70,8 @@ class Board:
 
         bonus_requirements = {
             "EASY": constants.BONUS_REQUIRED_EASY,
-            "MEDIUM": constants.BONUS_REQUIRED_MEDIUM,
-            "EXTREME": constants.BONUS_REQUIRED_EXTREME
+            "MEDIUM": constants.BONUS_REQUIRED_MED_EXTREME,
+            "EXTREME": constants.BONUS_REQUIRED_MED_EXTREME
         }
         
         required = bonus_requirements.get(self.difficulty)
@@ -197,11 +197,11 @@ class Board:
         img_w = sprite[3]
         img_h = sprite[4]
         x_img = (constants.SCREEN_WIDTH - img_w) / 2
-        y_img = (constants.SCREEN_HEIGHT - img_h) / 2 - 10
+        y_img = (constants.SCREEN_HEIGHT - img_h) / 2 + constants.GAME_OVER_Y_OFFSET
 
         pyxel.blt(x_img, y_img, *sprite)
 
-        score_y = y_img + img_h + 5
+        score_y = y_img + img_h + constants.GAME_OVER_SCORE_Y_OFFSET
         score_str = str(self.score)
         score_w = len(score_str) * 4
         score_x = (constants.SCREEN_WIDTH - score_w) / 2
@@ -210,4 +210,4 @@ class Board:
         restart_text = "PRESS SPACE TO RETURN TO MENU"
         text_w = len(restart_text) * 4
         text_x = (constants.SCREEN_WIDTH - text_w) / 2
-        pyxel.text(text_x, score_y + 10, restart_text, 7)
+        pyxel.text(text_x, score_y + constants.GAME_OVER_RESTART_Y_OFFSET, restart_text, constants.TEXT_COLOR)

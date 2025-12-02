@@ -23,10 +23,9 @@ class Character:
         self.y = 0
         self.state = constants.CHAR_STATE_STATIC
         self.original_x = x 
-        self.rest_timer = 0
+        self.rest_start_frame = 0
         self.floor = 0
-        self.transfer_pose_timer = 0
-        self._show_transfer_pose = False
+        self.transfer_pose_start_frame = 0
         
         # The maximum floor index the character can be on.
         self.max_floor_index = num_floors
@@ -105,7 +104,11 @@ class Character:
         """
         Checks if the character is in the correct position and state to receive a package.
         """
-        if self.state != constants.CHAR_STATE_STATIC or self.floor != package_floor:
+        # A character cannot start a transfer if they are not in the static state.
+        if self.state != constants.CHAR_STATE_STATIC:
+            return False
+
+        if self.floor != package_floor: 
             return False
         
         is_mario_turn = self.name == "Mario" and package_floor % 2 == 0
@@ -128,7 +131,7 @@ class Character:
     def enter_rest_mode(self):
         """Puts the character into the resting state (during truck sequence)."""
         self.state = constants.CHAR_STATE_REST1
-        self.rest_timer = 0
+        self.rest_start_frame = pyxel.frame_count
 
     def exit_rest_mode(self):
         """Takes the character out of the resting state."""
@@ -162,18 +165,17 @@ class Character:
         """Sets the character to show the 'has package' pose for a short duration."""
         if self.state == constants.CHAR_STATE_STATIC:
             self.state = constants.CHAR_STATE_TRANSFER_POSE
-            self.transfer_pose_timer = constants.TRANSFER_ANIMATION_TIME
+            self.transfer_pose_start_frame = pyxel.frame_count
 
     def __animate_rest(self):
         """Animates the character while in the resting state."""
-        self.rest_timer += 1
-        offset = (self.rest_timer // 15) % 2
+        elapsed_frames = pyxel.frame_count - self.rest_start_frame
+        offset = (elapsed_frames // constants.REST_ANIMATION_SPEED) % 2
         self.state = constants.CHAR_STATE_REST1 + offset
 
     def __update_transfer_pose(self):
-        """Counts down the timer for the transfer pose."""
-        self.transfer_pose_timer -= 1
-        if self.transfer_pose_timer <= 0:
+        """Checks if the duration for the transfer pose has elapsed."""
+        if pyxel.frame_count >= self.transfer_pose_start_frame + constants.TRANSFER_ANIMATION_TIME:
             self.state = constants.CHAR_STATE_STATIC
 
     def __update_physics_floor(self):
@@ -184,6 +186,8 @@ class Character:
             sprite_index = constants.CHAR_STATE_HAS_PACKAGE
 
         current_sprite = self.__sprites[sprite_index]
+        if not current_sprite: return # Skip if sprite is None (e.g. unused WAIT sprite)
+        
         sprite_h = current_sprite[4]
         safe_floor = min(self.floor, len(constants.FLOOR_Y_LEVELS) - 1)
         self.y = constants.FLOOR_Y_LEVELS[safe_floor] - sprite_h

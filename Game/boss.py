@@ -19,7 +19,7 @@ class Boss:
         
         self.state = constants.BOSS_STATE_IDLE
         self.target = None # Determines which side the boss appears on ('Mario', 'Luigi', or 'BOTH')
-        self.timer = 0
+        self.yell_start_frame = 0
         self.active_doors = []
 
     @property
@@ -43,6 +43,9 @@ class Boss:
                        - "LUIGI_FAIL": Boss appears on the left for Luigi.
                        - "BREAK": Boss appears on both sides for a work break.
         """
+        if self.is_active: # Prevent starting a new sequence while one is running
+            return
+
         self.state = constants.BOSS_STATE_OPENING
         self.active_doors = []
         
@@ -68,12 +71,11 @@ class Boss:
         if self.state == constants.BOSS_STATE_OPENING:
             if all(d.state == constants.DOOR_STATE_OPEN for d in self.active_doors):
                 self.state = constants.BOSS_STATE_YELLING
-                self.timer = constants.BOSS_YELL_DURATION
+                self.yell_start_frame = pyxel.frame_count
 
         # State 2: Stay in the "yelling" state for a set duration.
         elif self.state == constants.BOSS_STATE_YELLING:
-            self.timer -= 1
-            if self.timer <= 0:
+            if pyxel.frame_count >= self.yell_start_frame + constants.BOSS_YELL_DURATION:
                 self.state = constants.BOSS_STATE_CLOSING
                 for d in self.active_doors: 
                     d.close()
@@ -88,7 +90,7 @@ class Boss:
         """Draws the boss character if he is currently yelling."""
         if self.state == constants.BOSS_STATE_YELLING:
             # Alternate between two sprites to create a simple animation.
-            if (pyxel.frame_count // 10) % 2 == 0:
+            if (pyxel.frame_count // constants.BOSS_ANIMATION_SPEED) % 2 == 0:
                 sprite = constants.BOSS_1
             else:
                 sprite = constants.BOSS_2
@@ -96,7 +98,7 @@ class Boss:
             img, u, v, w, h, colkey = sprite
             
             # Adjust y-position to align the sprite correctly with the floor.
-            draw_y = constants.BOSS_Y - 15 
+            draw_y = constants.BOSS_Y + constants.BOSS_DRAW_Y_OFFSET
             
             # Draw on the right side if the target is Mario or both.
             if self.target == "BOTH" or self.target == "Mario":

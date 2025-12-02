@@ -1,5 +1,6 @@
 import constants
 from package import Package
+import pyxel
 
 class PackageManager:
     """
@@ -16,7 +17,7 @@ class PackageManager:
         self.conveyors = conveyors
         self.difficulty = difficulty
         self.packages = []
-        self.spawn_timer = 0
+        self.last_spawn_frame = 0
 
     def update(self, score: int, mario, luigi, truck) -> dict:
         """
@@ -28,7 +29,6 @@ class PackageManager:
         :param truck: The Truck object.
         :return: A dictionary with the results of the update cycle.
         """
-        self.spawn_timer += 1
         self.__spawn_package(score)
         
         results = {
@@ -49,8 +49,8 @@ class PackageManager:
         
         thresholds = {
             "EASY": constants.SPAWN_SCORE_THRESHOLD_EASY,
-            "MEDIUM": constants.SPAWN_SCORE_THRESHOLD_MEDIUM,
-            "EXTREME": constants.SPAWN_SCORE_THRESHOLD_EXTREME,
+            "MEDIUM": constants.SPAWN_SCORE_THRESHOLD_MED_EXTREME,
+            "EXTREME": constants.SPAWN_SCORE_THRESHOLD_MED_EXTREME,
             "CRAZY": constants.SPAWN_SCORE_THRESHOLD_CRAZY
         }
         
@@ -64,11 +64,13 @@ class PackageManager:
         """Handles the logic for spawning new packages onto the first conveyor."""
         max_packages = self.__calculate_max_packages(score)
         
-        if self.conveyors and len(self.packages) < max_packages:
-            if not self.packages or self.spawn_timer > constants.SPAWN_TIMER_GAP:
-                new_pck = Package(self.difficulty, self.conveyors[0], 0)
-                self.packages.append(new_pck)
-                self.spawn_timer = 0
+        can_spawn = len(self.packages) < max_packages
+        time_since_last_spawn = pyxel.frame_count - self.last_spawn_frame
+        
+        if can_spawn and time_since_last_spawn > constants.SPAWN_TIMER_GAP:
+            new_pck = Package(self.difficulty, self.conveyors[0], 0)
+            self.packages.append(new_pck)
+            self.last_spawn_frame = pyxel.frame_count
 
     def __update_packages(self, mario, luigi, truck, results: dict):
         """

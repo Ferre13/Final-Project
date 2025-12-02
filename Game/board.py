@@ -177,15 +177,15 @@ class Board:
 
     def __draw_playing(self):
         """Draws all the elements for the main game screen."""
+        for p in self.package_manager.packages:
+            p.draw()
+        
         for component in self.__drawables:
             if isinstance(component, list):
                 for item in component:
                     if item: item.draw()
             elif component:
                 component.draw()
-
-        for p in self.package_manager.packages:
-            p.draw()
 
         # HUD is drawn on top of everything
         self.game_info.draw_score(self.score)

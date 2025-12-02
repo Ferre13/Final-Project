@@ -72,30 +72,9 @@ class PackageManager:
 
     def __update_packages(self, mario, luigi, truck, results: dict):
         """
-        Updates all packages, checks their status, and tells the characters
-        when to start their transfer animations.
+        Updates all packages and checks their status.
         """
         for p in self.packages[:]:
-            # Check if a character should start a transfer animation
-            char_to_animate = None
-            if mario.can_receive_package(p.floor_index):
-                char_to_animate = mario
-            elif luigi.can_receive_package(p.floor_index):
-                char_to_animate = luigi
-            
-            if char_to_animate:
-                distance_to_end = 0
-                direction = p.current_conveyor.direction
-                speed = p.current_conveyor.speed
-                if direction == 1:
-                    distance_to_end = p.current_conveyor.end_x - (p.x + p.width)
-                else:
-                    distance_to_end = p.x - p.current_conveyor.x
-                
-                if speed > 0 and (distance_to_end / speed) <= constants.TRANSFER_ANIMATION_TIME:
-                    char_to_animate.start_transfer_animation()
-
-            # Update package and handle its status
             status = p.update()
             
             if status == constants.PKG_STATUS_REACHED_END:
@@ -120,6 +99,12 @@ class PackageManager:
         can_transfer = is_mario_turn or is_luigi_turn
 
         if can_transfer:
+            # Tell the character to show the transfer pose for one frame
+            if is_mario_turn:
+                mario.show_transfer_pose()
+            else:
+                luigi.show_transfer_pose()
+
             next_idx = p.floor_index + 1
             
             if next_idx < len(self.conveyors):

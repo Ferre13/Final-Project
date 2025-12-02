@@ -25,7 +25,8 @@ class Character:
         self.original_x = x 
         self.rest_timer = 0
         self.floor = 0
-        self.transfer_timer = 0
+        self.transfer_pose_timer = 0
+        self._show_transfer_pose = False
         
         # The maximum floor index the character can be on.
         self.max_floor_index = num_floors
@@ -157,11 +158,11 @@ class Character:
             self.floor = 1
         self.update()
 
-    def start_transfer_animation(self):
-        """Starts the two-part package transfer animation if the character is static."""
+    def show_transfer_pose(self):
+        """Sets the character to show the 'has package' pose for a short duration."""
         if self.state == constants.CHAR_STATE_STATIC:
-            self.state = constants.CHAR_STATE_TRANSFER_ANIM
-            self.transfer_timer = constants.TRANSFER_ANIMATION_TIME * 2
+            self.state = constants.CHAR_STATE_TRANSFER_POSE
+            self.transfer_pose_timer = constants.TRANSFER_ANIMATION_TIME
 
     def __animate_rest(self):
         """Animates the character while in the resting state."""
@@ -169,13 +170,19 @@ class Character:
         offset = (self.rest_timer // 15) % 2
         self.state = constants.CHAR_STATE_REST1 + offset
 
+    def __update_transfer_pose(self):
+        """Counts down the timer for the transfer pose."""
+        self.transfer_pose_timer -= 1
+        if self.transfer_pose_timer <= 0:
+            self.state = constants.CHAR_STATE_STATIC
+
     def __update_physics_floor(self):
         """Calculates the character's y-position based on their current floor."""
         sprite_index = self.state
-        if self.state == constants.CHAR_STATE_TRANSFER_ANIM:
-            # For height calculation, use the 'has package' sprite as it's the tallest.
+        # If in transfer pose, calculate height based on the 'has package' sprite
+        if self.state == constants.CHAR_STATE_TRANSFER_POSE:
             sprite_index = constants.CHAR_STATE_HAS_PACKAGE
-            
+
         current_sprite = self.__sprites[sprite_index]
         sprite_h = current_sprite[4]
         safe_floor = min(self.floor, len(constants.FLOOR_Y_LEVELS) - 1)
@@ -200,11 +207,6 @@ class Character:
         elif down_pressed:
             self.state = constants.CHAR_STATE_STATIC
             self.move_down()
-        
-        elif self.state == constants.CHAR_STATE_TRANSFER_ANIM:
-            self.transfer_timer -= 1
-            if self.transfer_timer <= 0:
-                self.state = constants.CHAR_STATE_STATIC
 
     def update(self):
         """Main update method for the character."""
@@ -212,6 +214,7 @@ class Character:
         state_handlers = {
             constants.CHAR_STATE_REST1: self.__animate_rest,
             constants.CHAR_STATE_REST2: self.__animate_rest,
+            constants.CHAR_STATE_TRANSFER_POSE: self.__update_transfer_pose,
         }
         
         handler = state_handlers.get(self.state)
@@ -231,20 +234,18 @@ class Character:
         sprite_index = self.state
         draw_w_mod = 1 # Used to flip sprite horizontally
 
-        if self.state == constants.CHAR_STATE_TRANSFER_ANIM:
-            # First half of animation: show "getting ready" sprite.
-            if self.transfer_timer > constants.TRANSFER_ANIMATION_TIME:
-                if self.name == "Mario" and self.floor == 0:
-                    sprite_index = constants.CHAR_STATE_HAS_PACKAGE
-                    draw_w_mod = -1 # Flipped
-                else:
-                    sprite_index = constants.CHAR_STATE_GETTING_PACKAGE
-            # Second half of animation: show "has package" sprite.
-            else:
-                sprite_index = constants.CHAR_STATE_HAS_PACKAGE
+        if self.state == constants.CHAR_STATE_TRANSFER_POSE:
+            sprite_index = constants.CHAR_STATE_HAS_PACKAGE
+            if self.name == "Luigi" and self.floor == self.max_floor_index:
+                draw_w_mod = -1
         
         elif self.name == "Mario" and self.floor == 0 and self.state == constants.CHAR_STATE_STATIC:
              draw_w_mod = -1
              
-        img, u, v, w, h, colkey = self.__sprites[sprite_index]
+        # The sprite for the 'getting package' state was removed, so sprite at index 1 is None
+        sprite = self.__sprites[sprite_index]
+        if not sprite:
+            return
+
+        img, u, v, w, h, colkey = sprite
         pyxel.blt(self.x, self.y, img, u, v, w * draw_w_mod, h, colkey)

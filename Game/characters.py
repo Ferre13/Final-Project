@@ -180,13 +180,9 @@ class Character:
 
     def __update_physics_floor(self):
         """Calculates the character's y-position based on their current floor."""
-        sprite_index = self.state
-        # If in transfer pose, calculate height based on the 'has package' sprite
-        if self.state == constants.CHAR_STATE_TRANSFER_POSE:
-            sprite_index = constants.CHAR_STATE_HAS_PACKAGE
-
+        sprite_index = self.state # This will now be 0,1,2,3,4
+        
         current_sprite = self.__sprites[sprite_index]
-        if not current_sprite: return # Skip if sprite is None (e.g. unused WAIT sprite)
         
         sprite_h = current_sprite[4]
         safe_floor = min(self.floor, len(constants.FLOOR_Y_LEVELS) - 1)
@@ -238,18 +234,13 @@ class Character:
         sprite_index = self.state
         draw_w_mod = 1 # Used to flip sprite horizontally
 
-        if self.state == constants.CHAR_STATE_TRANSFER_POSE:
-            sprite_index = constants.CHAR_STATE_HAS_PACKAGE
-            if self.name == "Luigi" and self.floor == self.max_floor_index:
-                draw_w_mod = -1
+        if self.name == "Luigi" and self.floor == self.max_floor_index and self.state == constants.CHAR_STATE_TRANSFER_POSE:
+            draw_w_mod = -1
         
         elif self.name == "Mario" and self.floor == 0 and self.state == constants.CHAR_STATE_STATIC:
              draw_w_mod = -1
              
-        # The sprite for the 'getting package' state was removed, so sprite at index 1 is None
         sprite = self.__sprites[sprite_index]
-        if not sprite:
-            return
 
         img, u, v, w, h, colkey = sprite
         pyxel.blt(self.x, self.y, img, u, v, w * draw_w_mod, h, colkey)

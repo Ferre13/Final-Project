@@ -78,7 +78,7 @@ class Conveyor:
     @property
     def width_px(self) -> int:
         """Returns the total width of the conveyor in pixels."""
-        return self.length * constants.CONVEYOR_SPRITE[3]
+        return self.length * constants.CONVEYOR_SPRITE_W
 
     @property
     def end_x(self) -> int:

@@ -17,7 +17,6 @@ class Truck:
         self.y = y
         self.packages_count = 0
         self.is_delivering = False
-        
         self.__sprites = constants.TRUCK_SPRITES
 
     @property
@@ -98,31 +97,43 @@ class Truck:
         if not self.is_delivering: 
             return
 
-        # Phase 0: A brief wait before the truck starts moving.
-        if self.__phase == 0:
-            if pyxel.frame_count >= self.__event_start_frame + constants.TRUCK_WAIT_TIME:
-                self.__phase = 1
+        # Use a dictionary to dispatch to phase-specific update methods
+        phase_handlers = {
+            0: self.__update_phase_0_wait,
+            1: self.__update_phase_1_drive_off,
+            2: self.__update_phase_2_wait_offscreen,
+            3: self.__update_phase_3_drive_back,
+        }
+        
+        handler = phase_handlers.get(self.__phase)
+        if handler:
+            handler()
 
-        # Phase 1: Drive off the screen to the left.
-        elif self.__phase == 1:
-            self.x -= constants.TRUCK_SPEED
-            if self.x < -self.width:
-                self.__phase = 2
-                self.__event_start_frame = pyxel.frame_count  # Start offscreen timer
-                self.packages_count = 0  # Unload packages while off-screen
+    def __update_phase_0_wait(self):
+        """Handles the initial wait phase before the truck starts moving."""
+        if pyxel.frame_count >= self.__event_start_frame + constants.TRUCK_WAIT_TIME:
+            self.__phase = 1
 
-        # Phase 2: Wait for a short time while off-screen.
-        elif self.__phase == 2:
-            if pyxel.frame_count >= self.__event_start_frame + constants.TRUCK_OFFSCREEN_TIME:
-                self.__phase = 3
-                self.x = -self.width
+    def __update_phase_1_drive_off(self):
+        """Handles the phase where the truck drives off the screen."""
+        self.x -= constants.TRUCK_SPEED
+        if self.x < -self.width:
+            self.__phase = 2
+            self.__event_start_frame = pyxel.frame_count  # Start offscreen timer
+            self.packages_count = 0  # Unload packages while off-screen
 
-        # Phase 3: Drive back to the starting position from the left.
-        elif self.__phase == 3:
-            self.x += constants.TRUCK_SPEED
-            if self.x >= constants.TRUCK_X:
-                self.x = constants.TRUCK_X
-                self.is_delivering = False # End of delivery sequence
+    def __update_phase_2_wait_offscreen(self):
+        """Handles the phase where the truck waits off-screen."""
+        if pyxel.frame_count >= self.__event_start_frame + constants.TRUCK_OFFSCREEN_TIME:
+            self.__phase = 3
+            self.x = -self.width # Ensure truck is fully off-screen before returning
+
+    def __update_phase_3_drive_back(self):
+        """Handles the phase where the truck drives back to its starting position."""
+        self.x += constants.TRUCK_SPEED
+        if self.x >= constants.TRUCK_X:
+            self.x = constants.TRUCK_X
+            self.is_delivering = False # End of delivery sequence
 
     def draw(self):
         """Draws the truck, choosing the sprite based on its fullness."""

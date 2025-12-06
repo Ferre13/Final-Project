@@ -69,11 +69,7 @@ class Package:
     @property
     def __sprite_list(self) -> list:
         """Returns the appropriate list of package sprites based on difficulty."""
-        if self.__difficulty == "EASY": return constants.PCK_EASY_SPRITES
-        elif self.__difficulty == "MEDIUM": return constants.PCK_MEDIUM_SPRITES
-        elif self.__difficulty == "EXTREME": return constants.PCK_EXTREME_SPRITES
-        elif self.__difficulty == "CRAZY": return constants.PCK_CRAZY_SPRITES
-        return constants.PCK_EASY_SPRITES
+        return constants.DIFFICULTY_SPRITES.get(self.__difficulty, constants.PCK_EASY_SPRITES)
 
     def advance_to_conveyor(self, next_conveyor: Conveyor):
         """
@@ -103,39 +99,50 @@ class Package:
         :return: A status code to inform the PackageManager of what action to take.
         """
         if self.state == constants.PKG_STATE_FALLING:
-            self.y += constants.PACKAGE_FALL_SPEED
-            if self.y > constants.SCREEN_HEIGHT:
-                if self.floor_index % 2 == 0:
-                    return constants.PKG_STATUS_FALLEN_MARIO
-                else:
-                    return constants.PKG_STATUS_FALLEN_LUIGI
-            return constants.PKG_STATUS_MOVING
-
+            return self._update_falling_state()
         elif self.state == constants.PKG_STATE_MOVING:
-            speed = self.current_conveyor.speed
-            direction = self.current_conveyor.direction
-            self.last_direction = direction
-            
-            prev_x = self.x
-            self.x += speed * direction
+            return self._update_moving_state()
+        return constants.PKG_STATUS_MOVING # Default return if state is unknown or static
 
-            trigger_x = constants.CENTER_SCREEN
-            if (direction == -1 and prev_x > trigger_x and self.x <= trigger_x) or \
-               (direction == 1 and prev_x < trigger_x and self.x >= trigger_x):
-                self.level_index += 1
-            
-            reached_end = False
-            if direction == 1:
-                if self.x + self.width >= self.current_conveyor.end_x + constants.OVERHANG_LIMIT:
-                    reached_end = True
+    def _update_falling_state(self) -> int:
+        """Handles the logic when the package is in the 'falling' state."""
+        self.y += constants.PACKAGE_FALL_SPEED
+        if self.y > constants.SCREEN_HEIGHT:
+            if self.floor_index % 2 == 0:
+                return constants.PKG_STATUS_FALLEN_MARIO
             else:
-                if self.x <= self.current_conveyor.x - constants.OVERHANG_LIMIT:
-                    reached_end = True
-            
-            if reached_end:
-                return constants.PKG_STATUS_REACHED_END
-            
-            return constants.PKG_STATUS_MOVING
+                return constants.PKG_STATUS_FALLEN_LUIGI
+        return constants.PKG_STATUS_MOVING
+
+    def _update_moving_state(self) -> int:
+        """Handles the logic when the package is in the 'moving' state."""
+        speed = self.current_conveyor.speed
+        direction = self.current_conveyor.direction
+        self.last_direction = direction
+        
+        self._move_package_horizontally(speed, direction)
+        
+        if self._check_if_reached_conveyor_end(direction):
+            return constants.PKG_STATUS_REACHED_END
+        
+        return constants.PKG_STATUS_MOVING
+
+    def _move_package_horizontally(self, speed: float, direction: int):
+        """Updates the package's x-position and level index based on movement."""
+        prev_x = self.x
+        self.x += speed * direction
+
+        trigger_x = constants.CENTER_SCREEN
+        if (direction == -1 and prev_x > trigger_x and self.x <= trigger_x) or \
+           (direction == 1 and prev_x < trigger_x and self.x >= trigger_x):
+            self.level_index += 1
+
+    def _check_if_reached_conveyor_end(self, direction: int) -> bool:
+        """Checks if the package has reached the end of the current conveyor."""
+        if direction == 1: # Moving right
+            return self.x + self.width >= self.current_conveyor.end_x + constants.OVERHANG_LIMIT
+        else: # Moving left
+            return self.x <= self.current_conveyor.x - constants.OVERHANG_LIMIT
 
     def draw(self):
         """Draws the package with the correct sprite based on its level and state."""

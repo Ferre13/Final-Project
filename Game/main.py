@@ -16,7 +16,6 @@ class Game:
         """
         pyxel.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, title="Mario Bros Game")
         pyxel.load(constants.SPRITES_FILE)  # This loads the main resource file into image bank 0
-        
         self.menu = Menu()
         self.board = None
         self.game_state = constants.MAIN_MENU

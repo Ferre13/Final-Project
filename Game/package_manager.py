@@ -29,7 +29,7 @@ class PackageManager:
         :param truck: The Truck object.
         :return: A dictionary with the results of the update cycle.
         """
-        self.__spawn_package(score)
+        self.__update_package_spawning(score)
         
         results = {
             "failures": 0,
@@ -60,17 +60,32 @@ class PackageManager:
             
         return limit
 
-    def __spawn_package(self, score: int):
-        """Handles the logic for spawning new packages onto the first conveyor."""
-        max_packages = self.__calculate_max_packages(score)
-        
-        can_spawn = len(self.packages) < max_packages
+    def __update_package_spawning(self, score: int):
+        """
+        Handles all package spawning logic, combining periodic spawning with
+        spawning to meet a minimum package count.
+        """
         time_since_last_spawn = pyxel.frame_count - self.last_spawn_frame
         
-        if can_spawn and time_since_last_spawn > constants.SPAWN_TIMER_GAP:
+        # Determine if conditions are met for either type of spawn
+        is_below_minimum = len(self.packages) < self.__calculate_max_packages(score)
+        periodic_timer_elapsed = time_since_last_spawn > constants.PERIODIC_SPAWN_TIME
+        fill_in_timer_elapsed = time_since_last_spawn > constants.SPAWN_TIMER_GAP
+        
+        # Spawn if the periodic timer is up, or if we're below the minimum and the shorter cooldown is up.
+        should_spawn = periodic_timer_elapsed or (is_below_minimum and fill_in_timer_elapsed)
+        
+        if should_spawn:
             new_pck = Package(self.difficulty, self.conveyors[0], 0)
             self.packages.append(new_pck)
             self.last_spawn_frame = pyxel.frame_count
+
+    def clear_top_floor_packages(self):
+        """Removes all packages from the top conveyor."""
+        if not self.conveyors:
+            return
+        top_floor_index = len(self.conveyors) - 1
+        self.packages = [p for p in self.packages if p.floor_index != top_floor_index]
 
     def __update_packages(self, mario, luigi, truck, results: dict):
         """

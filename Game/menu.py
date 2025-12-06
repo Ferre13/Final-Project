@@ -32,7 +32,25 @@ class Menu:
         """
         Draws the difficulty selection sprites on the screen.
         """
-        y_pos = 40
+        # Starting y position for instructions
+        y_inst_start = 15
+
+        # Add explanatory text - moved to top
+        instructions_text_1 = "PRESS 1-4 TO SELECT LEVEL"
+        instructions_text_2 = "PRESS ESC TO EXIT"
+
+        # Calculate x_pos to center the text
+        text_x_1 = (constants.SCREEN_WIDTH - (len(instructions_text_1) * 4)) / 2
+        text_x_2 = (constants.SCREEN_WIDTH - (len(instructions_text_2) * 4)) / 2
+        
+        # Use pyxel.text to draw the instructions
+        pyxel.text(text_x_1, y_inst_start, instructions_text_1, constants.TEXT_COLOR)
+        pyxel.text(text_x_2, y_inst_start + 10, instructions_text_2, constants.TEXT_COLOR) # 10 pixels lower for second line
+
+        # Starting y position for difficulty options, after instructions
+        y_pos_options_start = y_inst_start + 30 # A bit of spacing
+
+        y_pos = y_pos_options_start
         for key, option_data in self.options.items():
             sprite = option_data["sprite"]
             # Center the sprite horizontally

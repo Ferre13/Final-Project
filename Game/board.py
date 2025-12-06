@@ -110,7 +110,7 @@ class Board:
         # Global actions
         self.door_left.update()
         self.door_right.update()
-        if pyxel.btnp(pyxel.KEY_Q):
+        if pyxel.btnp(pyxel.KEY_ESCAPE):
             pyxel.quit()
 
     def __update_playing(self):
@@ -122,6 +122,8 @@ class Board:
         
         if results["new_state"]:
             self.state = results["new_state"]
+            if self.state == constants.TRUCK_SEQUENCE:
+                self.package_manager.clear_top_floor_packages()
             if results["truck_bonus"]:
                 self.handle_truck_bonus()
 

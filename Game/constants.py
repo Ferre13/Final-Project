@@ -1,15 +1,19 @@
+# WINDOW DIMENSIONS
 SCREEN_WIDTH = 256
 SCREEN_HEIGHT = 128
-SPRITES_FILE = "assets/my_resource.pyxres"
 
-TRUCK_WAIT_TIME = 60          # frames the truck waits before moving
-TRUCK_OFFSCREEN_TIME = 30     # frames the truck stays off-screen
-TRUCK_SPEED = 2               # pixels per frame
-BOSS_YELL_DURATION = 60       # frames
-DOOR_ANIMATION_SPEED = 10     # frames
-SPAWN_TIMER_GAP = 45          # Minimum frames between package spawns
-TRANSFER_ANIMATION_TIME = 5  # Frames for the character's package transfer animation
+# FRAME COUNTS AND SPEEDS
+TRUCK_WAIT_TIME = 60
+TRUCK_OFFSCREEN_TIME = 30
+TRUCK_SPEED = 1
+BOSS_YELL_DURATION = 60
+DOOR_ANIMATION_SPEED = 10
+# Package spawn and transfer timings
+SPAWN_TIMER_GAP = 45
+PERIODIC_SPAWN_TIME = 250
+TRANSFER_ANIMATION_TIME = 5
 
+# SCORING SYSTEM, FAILURES
 POINTS_PER_PACKAGE = 1
 POINTS_PER_TRUCK = 10
 MAX_FAILURES = 3
@@ -51,6 +55,8 @@ DOOR_STATE_CLOSED = "closed"
 DOOR_STATE_OPENING = "opening"
 DOOR_STATE_OPEN = "open"
 DOOR_STATE_CLOSING = "closing"
+
+SPRITES_FILE = "assets/my_resource.pyxres"
 
 MARIO_STATIC = (0, 36, 2, 10, 14, 0)
 MARIO_PCK = (0, 36, 33, 12, 15, 0)

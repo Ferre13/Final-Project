@@ -4,19 +4,17 @@ from game_object import GameObject
 
 class Door(GameObject):
     """ 
-    Represents a door for the boss's appearance. It's a simple state machine
-    that handles its own opening and closing animations.
+    Represents the doors where boss appears from.
     """
     def __init__(self, x: int, y: int):
         """
-        Initializes a door at a specific location.
-
         :param x: The x-coordinate.
         :param y: The y-coordinate.
         """
         super().__init__(x, y)
         self.state = constants.DOOR_STATE_CLOSED
         self.sprites = constants.DOOR_SPRITES
+        # This is a frame counter to manage animation timing
         self.animation_start_frame = 0
             
     def open(self):
@@ -32,7 +30,10 @@ class Door(GameObject):
             self.animation_start_frame = pyxel.frame_count
 
     def update(self):
-        """Updates the door's state based on its animation timing."""
+        """
+        Updates the door's state based on its animation timing.
+        If the door is opening or closing, it checks if the animation duration is complete and updates the state accordingly
+        """
         if self.state == constants.DOOR_STATE_OPENING:
             if pyxel.frame_count >= self.animation_start_frame + constants.DOOR_ANIMATION_SPEED:
                 self.state = constants.DOOR_STATE_OPEN

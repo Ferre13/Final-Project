@@ -1,30 +1,26 @@
 import constants
 import pyxel
 from door import Door
+from character import Character
 
 class Boss:
-    """ 
-    Manages the state and animation for the boss character. The boss appears
-    when a player fails or after a successful truck delivery. This class acts
-    as a state machine that coordinates with the Door objects.
-    """
+    """Manages the boss character's appearance and animations."""
     def __init__(self, door_left: Door, door_right: Door):
         """
-        Initializes the Boss.
-
-        :param door_left: The Door object on the left side of the screen.
-        :param door_right: The Door object on the right side of the screen.
+        :param door_left: The Door object for the left side.
+        :param door_right: The Door object for the right side.
         """
         self.door_left = door_left
         self.door_right = door_right
         
         self.state = constants.BOSS_STATE_IDLE
-        self.target = None # Determines which side the boss appears on ('Mario', 'Luigi', or 'BOTH')
         self.yell_start_frame = 0
         self.active_doors = []
 
     @property
-    def state(self) -> int: return self.__state
+    def state(self) -> int:
+        """The current state of the boss"""
+        return self.__state
     @state.setter
     def state(self, value: int):
         if not isinstance(value, int): raise TypeError("State must be an integer")
@@ -32,79 +28,80 @@ class Boss:
 
     @property
     def is_active(self) -> bool:
-        """Returns True if the boss is currently in any state other than IDLE."""
+        """Returns True if the boss is not idle. To check if the boss is currently appearing."""
         return self.state != constants.BOSS_STATE_IDLE
 
-    def appear(self, reason: str):
-        """
-        Starts the boss appearance sequence.
-
-        :param reason: A string that determines why the boss is appearing.
-                       - "MARIO_FAIL": Boss appears on the right for Mario.
-                       - "LUIGI_FAIL": Boss appears on the left for Luigi.
-                       - "BREAK": Boss appears on both sides for a work break.
-        """
-        if self.is_active: # Prevent starting a new sequence while one is running
-            return
-
+    def __start_appearance(self):
+        """A private helper to begin the door-opening sequence."""
         self.state = constants.BOSS_STATE_OPENING
+        for door in self.active_doors:
+            door.open()
+
+    def appear_for_break(self):
+        """Starts the boss sequence for a work break."""
+        if self.is_active:
+            return # Don't start if already active
+        self.active_doors = [self.door_left, self.door_right]
+        self.__start_appearance()
+
+    def appear_for_fail(self, character: Character):
+        """
+        Starts the boss sequence for a character's failure.
+        :param character: The character that failed.
+        """
+        if self.is_active: 
+            return # Don't start if already active
         self.active_doors = []
-        
-        if reason == "MARIO_FAIL":
-            self.target = "Mario"
+        # To know if its Mario or Luigi who failed (based on x position)
+        if character.x > constants.CENTER_SCREEN:
             self.active_doors.append(self.door_right)
-        elif reason == "LUIGI_FAIL":
-            self.target = "Luigi"
+        else:
             self.active_doors.append(self.door_left)
-        elif reason == "BREAK":
-            self.target = "BOTH"
-            self.active_doors = [self.door_left, self.door_right]
-            
-        for d in self.active_doors:
-            d.open()
+        self.__start_appearance()
 
     def update(self):
-        """Updates the boss's state machine."""
+        """Updates the boss's animation state machine."""
         if self.state == constants.BOSS_STATE_IDLE: 
             return
-
-        # State 1: Wait for the active doors to be fully open.
         if self.state == constants.BOSS_STATE_OPENING:
-            if all(d.state == constants.DOOR_STATE_OPEN for d in self.active_doors):
+            # We define as true first and then check for false. If none are false, then all are open.
+            all_doors_are_open = True
+            for door in self.active_doors:
+                if door.state != constants.DOOR_STATE_OPEN:
+                    all_doors_are_open = False
+            if all_doors_are_open:
                 self.state = constants.BOSS_STATE_YELLING
                 self.yell_start_frame = pyxel.frame_count
-
-        # State 2: Stay in the "yelling" state for a set duration.
         elif self.state == constants.BOSS_STATE_YELLING:
             if pyxel.frame_count >= self.yell_start_frame + constants.BOSS_YELL_DURATION:
                 self.state = constants.BOSS_STATE_CLOSING
-                for d in self.active_doors: 
-                    d.close()
-
-        # State 3: Wait for the active doors to be fully closed, then return to idle.
+                for door in self.active_doors: 
+                    door.close()
         elif self.state == constants.BOSS_STATE_CLOSING:
-            if all(d.state == constants.DOOR_STATE_CLOSED for d in self.active_doors):
+            # We define as true first and then check for false. If none are false, then all are closed. Same as above.
+            all_doors_are_closed = True
+            for door in self.active_doors:
+                if door.state != constants.DOOR_STATE_CLOSED:
+                    all_doors_are_closed = False
+            if all_doors_are_closed:
                 self.state = constants.BOSS_STATE_IDLE
                 self.active_doors = []
 
     def draw(self):
-        """Draws the boss character if he is currently yelling."""
+        """Draws the boss on the screen if he is active."""
         if self.state == constants.BOSS_STATE_YELLING:
-            # Alternate between two sprites to create a simple animation.
+            # Alternate between two boss sprites for a yelling animation
             if (pyxel.frame_count // constants.BOSS_ANIMATION_SPEED) % 2 == 0:
                 sprite = constants.BOSS_1
             else:
                 sprite = constants.BOSS_2
 
             img, u, v, w, h, colkey = sprite
-            
-            # Adjust y-position to align the sprite correctly with the floor.
             draw_y = constants.BOSS_Y + constants.BOSS_DRAW_Y_OFFSET
             
-            # Draw on the right side if the target is Mario or both.
-            if self.target == "BOTH" or self.target == "Mario":
+            # Draw on the right side if the right door is active
+            if self.door_right in self.active_doors:
                 pyxel.blt(constants.BOSS_MARIO, draw_y, img, u, v, abs(w), h, colkey)
-            
-            # Draw on the left side (flipped) if the target is Luigi or both.
-            if self.target == "BOTH" or self.target == "Luigi":
+            # Draw on the left side (flipped) if the left door is active
+            if self.door_left in self.active_doors:
                 pyxel.blt(constants.BOSS_LUIGI, draw_y, img, u, v, -abs(w), h, colkey)

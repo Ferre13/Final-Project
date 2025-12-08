@@ -6,6 +6,7 @@ SCREEN_HEIGHT = 128
 TRUCK_WAIT_TIME = 60
 TRUCK_OFFSCREEN_TIME = 30
 TRUCK_SPEED = 1
+PACKAGE_FALL_SPEED = 3
 BOSS_YELL_DURATION = 60
 DOOR_ANIMATION_SPEED = 10
 # Package spawn and transfer timings
@@ -20,44 +21,54 @@ MAX_FAILURES = 3
 TRUCK_MAX_CAPACITY = 8
 INITIAL_PACKAGE_LIMIT = 1
 
+# Bonuses are the deliveries needed to earn an extra life
 BONUS_REQUIRED_EASY = 3
 BONUS_REQUIRED_MED_EXTREME = 5
 
+# Score thresholds for increasing package limits (when score reaches those values, increase min packages by 1)
 SPAWN_SCORE_THRESHOLD_EASY = 50
 SPAWN_SCORE_THRESHOLD_MED_EXTREME = 30
 SPAWN_SCORE_THRESHOLD_CRAZY = 20
 
-PACKAGE_FALL_SPEED = 3
-OVERHANG_LIMIT = 5            # pixels a package can hang over an edge before falling
+# pixels a package can hang over an edge before falling
+OVERHANG_LIMIT = 5
+# Pixels from bottom of screen where ground starts
 GROUND_HEIGHT_PX = 6
 GROUND_START_Y = SCREEN_HEIGHT - GROUND_HEIGHT_PX
 
+# OBJECT STATES
+# Character states for Mario and Luigi
 CHAR_STATE_STATIC = 0
 CHAR_STATE_TRANSFER_POSE = 1
 CHAR_STATE_PUNISHED = 2
 CHAR_STATE_REST1 = 3
 CHAR_STATE_REST2 = 4
 
+# Package states
 PKG_STATE_MOVING = "moving"
 PKG_STATE_FALLING = "falling"
-
 PKG_STATUS_MOVING = 0
 PKG_STATUS_REACHED_END = 1
 PKG_STATUS_FALLEN_LUIGI = 2 
 PKG_STATUS_FALLEN_MARIO = 3 
+PKG_STATUS_DELETE_ME = 4
 
+# Boss states
 BOSS_STATE_IDLE = 0
 BOSS_STATE_OPENING = 1
 BOSS_STATE_YELLING = 2
 BOSS_STATE_CLOSING = 3
 
+# Door states
 DOOR_STATE_CLOSED = "closed"
 DOOR_STATE_OPENING = "opening"
 DOOR_STATE_OPEN = "open"
 DOOR_STATE_CLOSING = "closing"
 
+# SPRITES
 SPRITES_FILE = "assets/my_resource.pyxres"
 
+# Character sprites
 MARIO_STATIC = (0, 36, 2, 10, 14, 0)
 MARIO_PCK = (0, 36, 33, 12, 15, 0)
 MARIO_BOSS = (0, 35, 50, 10, 14, 0)
@@ -75,6 +86,7 @@ LUIGI_SPRITES = [LUIGI_STATIC, LUIGI_PCK, LUIGI_BOSS, LUIGI_REST1, LUIGI_REST2]
 BOSS_1 = (0, 32, 96, 16, 16, 0)
 BOSS_2 = (0, 48, 96, 16, 16, 0)
 
+# Package sprites by level
 PCK_LVL1 = (0, 3, 5, 11, 6, 0) 
 PCK_LVL1_FALL = (0, 17, 4, 10, 12, 0)
 PCK_LVL2 = (0, 3, 21, 11, 6, 0) 
@@ -96,20 +108,18 @@ PCK_LVL9_FALL = (0, 17, 132, 10, 12, 0)
 PCK_LVL10 = (0, 3, 148, 11, 6, 0) 
 PCK_LVL10_FALL = (0, 17, 148, 10, 12, 0)
 
-PCK_EASY_SPRITES = [PCK_LVL1, PCK_LVL1_FALL, PCK_LVL3, PCK_LVL3_FALL, PCK_LVL5, PCK_LVL5_FALL, PCK_LVL7, PCK_LVL7_FALL, PCK_LVL9, PCK_LVL9_FALL, PCK_LVL10, PCK_LVL10_FALL]
-PCK_MEDIUM_SPRITES = [PCK_LVL1, PCK_LVL1_FALL, PCK_LVL2, PCK_LVL2_FALL, PCK_LVL3, PCK_LVL3_FALL, PCK_LVL5, PCK_LVL5_FALL, PCK_LVL7, PCK_LVL7_FALL, PCK_LVL8, PCK_LVL8_FALL, PCK_LVL9, PCK_LVL9_FALL, PCK_LVL10, PCK_LVL10_FALL]
-PCK_EXTREME_SPRITES = [PCK_LVL1, PCK_LVL1_FALL, PCK_LVL2, PCK_LVL2_FALL, PCK_LVL3, PCK_LVL3_FALL, PCK_LVL4, PCK_LVL4_FALL, PCK_LVL5, PCK_LVL5_FALL, PCK_LVL6, PCK_LVL6_FALL, PCK_LVL7, PCK_LVL7_FALL, PCK_LVL8, PCK_LVL8_FALL, PCK_LVL9, PCK_LVL9_FALL, PCK_LVL10, PCK_LVL10_FALL]
+PCK_EASY_SPRITES = [PCK_LVL1, PCK_LVL1_FALL, PCK_LVL3, PCK_LVL3_FALL, PCK_LVL5, PCK_LVL5_FALL, 
+                    PCK_LVL7, PCK_LVL7_FALL, PCK_LVL9, PCK_LVL9_FALL, PCK_LVL10, PCK_LVL10_FALL]
+PCK_MEDIUM_SPRITES = [PCK_LVL1, PCK_LVL1_FALL, PCK_LVL2, PCK_LVL2_FALL, PCK_LVL3, PCK_LVL3_FALL, PCK_LVL5, PCK_LVL5_FALL, 
+                      PCK_LVL7, PCK_LVL7_FALL, PCK_LVL8, PCK_LVL8_FALL, PCK_LVL9, PCK_LVL9_FALL, PCK_LVL10, PCK_LVL10_FALL]
+PCK_EXTREME_SPRITES = [PCK_LVL1, PCK_LVL1_FALL, PCK_LVL2, PCK_LVL2_FALL, PCK_LVL3, PCK_LVL3_FALL, PCK_LVL4, PCK_LVL4_FALL, PCK_LVL5, PCK_LVL5_FALL, 
+                       PCK_LVL6, PCK_LVL6_FALL, PCK_LVL7, PCK_LVL7_FALL, PCK_LVL8, PCK_LVL8_FALL, PCK_LVL9, PCK_LVL9_FALL, PCK_LVL10, PCK_LVL10_FALL]
 PCK_CRAZY_SPRITES = PCK_EASY_SPRITES
 
-# Dictionary mapping difficulty to sprite lists for easier lookup
-DIFFICULTY_SPRITES = {
-    "EASY": PCK_EASY_SPRITES,
-    "MEDIUM": PCK_MEDIUM_SPRITES,
-    "EXTREME": PCK_EXTREME_SPRITES,
-    "CRAZY": PCK_CRAZY_SPRITES,
-}
+# We use a dictionary for easier access based on difficulty level
+DIFFICULTY_SPRITES = {"EASY": PCK_EASY_SPRITES, "MEDIUM": PCK_MEDIUM_SPRITES, "EXTREME": PCK_EXTREME_SPRITES, "CRAZY": PCK_CRAZY_SPRITES,}
 
-
+# Truck sprites
 TRUCK_EMPTY = (0, 64, 0, 32, 16, 0)
 TRUCK_1 = (0, 64, 16, 32, 16, 0)
 TRUCK_2 = (0, 64, 32, 32, 16, 0)
@@ -122,6 +132,7 @@ TRUCK_8 = (0, 64, 128, 32, 16, 0)
 TRUCK_FULL = (0, 64, 144, 32, 16, 0)
 TRUCK_SPRITES = [TRUCK_EMPTY, TRUCK_1, TRUCK_2, TRUCK_3, TRUCK_4, TRUCK_5, TRUCK_6, TRUCK_7, TRUCK_8, TRUCK_FULL]
 
+# Other factory element sprites
 CONVEYOR_SPRITE = (0, 32, 154, 32, 4, 0)  
 PLATFORM_SPRITE = (0, 15, 187, 17, 19, 0)
 FLOOR_SPRITE = (1, 33, 34, 8, 2, 0)
@@ -129,6 +140,7 @@ EXIT_SIGNAL_SPRITE = (0, 32, 128, 16, 7, 0)
 VERTICAL_STRUCTURE_SPRITE = (1, 18, 17, 12, 35, 1)
 MACHINE_SPRITE = (1, 32, 17, 14, 13, 0)
 WINDOW_SPRITE = (1, 18, 2, 32, 12, 0)
+
 DOOR_CLOSED = (0, 32, 136, 16, 16, 0)
 DOOR_OPENING = (0, 48, 136, 16, 16, 0)
 DOOR_OPEN = (0, 48, 120, 16, 16, 0)
@@ -140,6 +152,7 @@ LEVEL_EXTREME = (0, 32, 172, 27, 5, 0)
 LEVEL_CRAZY = (0, 32, 178, 19, 5, 0)
 GAME_OVER_SPRITE = (2, 0, 0, 62, 36, 0)
 
+# Number sprites for score display, life icon
 NUM_1 = (1, 2, 0, 4, 7, 0) 
 NUM_2 = (1, 10, 0, 4, 7, 0)
 NUM_3 = (1, 2, 8, 4, 7, 0) 
@@ -153,22 +166,29 @@ NUM_0 = (1, 10, 32, 4, 7, 0)
 NUMBER_SPRITES = [NUM_0, NUM_1, NUM_2, NUM_3, NUM_4, NUM_5, NUM_6, NUM_7, NUM_8, NUM_9]
 LIFE_SPRITE = (0, 32, 112, 16, 16, 0)
 
+# GAME CONSTANTS
+# UI positions
 SCORE_X = SCREEN_WIDTH - 20
 SCORE_Y = 3
 LIVES_X = SCREEN_WIDTH // 2 - 28
 LIVES_Y = 1
 
+# Conveyor belt constants
 CONVEYOR_Y_START = SCREEN_HEIGHT - 16
-CONVEYOR_DISTANCE = 11      # Vertical distance between conveyor belts
-CONVEYOR_SEGMENTS = 4       # Number of sprite segments making up a conveyor's length
+# Vertical distance between conveyor belts
+CONVEYOR_DISTANCE = 11
+# Number of times the sprite is repeated to form a full conveyor
+CONVEYOR_SEGMENTS = 4
 CONVEYOR_SPRITE_W = CONVEYOR_SPRITE[3]
 CONVEYOR_TOTAL_WIDTH_PX = CONVEYOR_SEGMENTS * CONVEYOR_SPRITE_W
 CONVEYOR_X_START = SCREEN_WIDTH // 2 - (CONVEYOR_TOTAL_WIDTH_PX // 2)
 
+# Factory element positions
 CENTER_SCREEN = SCREEN_WIDTH // 2
 STRUCT_WIDTH_PX = VERTICAL_STRUCTURE_SPRITE[3] * 2
 STRUCT_X = CENTER_SCREEN - (STRUCT_WIDTH_PX // 2)
 
+# Starting x positions for elements
 LUIGI_X = 45
 MARIO_X = 194
 MACHINE_X = SCREEN_WIDTH - 14
@@ -176,42 +196,45 @@ MACHINE_Y = SCREEN_HEIGHT - 24
 CONVEYOR_0_X = MACHINE_X - 32
 TRUCK_X = 8
 
+# Boss positions
 BOSS_Y = MACHINE_Y - 3
 BOSS_MARIO = SCREEN_WIDTH - 16
 BOSS_LUIGI = 0
 PUNISH_MARIO_X = SCREEN_WIDTH - 30
 PUNISH_LUIGI_X = 18
 
+# Floor numbers based on difficulty
 NUM_EASY_CRAZY = 5
 NUM_MEDIUM = 7
 NUM_EXTREME = 9
 
-# Dynamically calculate the Y position for each conveyor floor
+# Y positions for each conveyor floor
 FLOORS_EASY_CRAZY = []
-for i in range(NUM_EASY_CRAZY):
-    FLOORS_EASY_CRAZY.append(CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE))
+for floor in range(NUM_EASY_CRAZY):
+    FLOORS_EASY_CRAZY.append(CONVEYOR_Y_START - (floor * CONVEYOR_DISTANCE))
 
 FLOORS_MEDIUM = []
-for i in range(NUM_MEDIUM):
-    FLOORS_MEDIUM.append(CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE))
+for floor in range(NUM_MEDIUM):
+    FLOORS_MEDIUM.append(CONVEYOR_Y_START - (floor * CONVEYOR_DISTANCE))
 
 FLOORS_EXTREME = []
-for i in range(NUM_EXTREME):
-    FLOORS_EXTREME.append(CONVEYOR_Y_START - (i * CONVEYOR_DISTANCE))
-
-# This list is used by characters to know where their feet should be on each floor
+for floor in range(NUM_EXTREME):
+    FLOORS_EXTREME.append(CONVEYOR_Y_START - (floor * CONVEYOR_DISTANCE))
+# List used by characters to know where they should stand based on difficulty
+# Starting y is ground level
 FLOOR_Y_LEVELS = [GROUND_START_Y]
-for y in FLOORS_EXTREME:
-    FLOOR_Y_LEVELS.append(y + 2)
+# We use extreme because it has the most floors, then characters know their max floor based on difficulty so they don't go too high
+for height in FLOORS_EXTREME:
+    FLOOR_Y_LEVELS.append(height + 2)
 
 # Conveyor speeds
 SLOW_SPEED = 1.0
 MEDIUM_SPEED = 1.5
 HIGH_SPEED = 2.0
 
-# --- GAME LAYOUT AND POSITIONING ---
+# GAME LAYOUT AND POSITIONING
 # UI
-TEXT_COLOR = 7
+TEXT_COLOR = 7 # White
 GAME_OVER_Y_OFFSET = -10
 GAME_OVER_SCORE_Y_OFFSET = 5
 GAME_OVER_RESTART_Y_OFFSET = 10
@@ -224,7 +247,7 @@ SCORE_LABEL_Y_OFFSET = 1
 DIGIT_SPACING = 1
 LIFE_ICON_SPACING = 2
 
-# Animations
+# Animations speeds
 REST_ANIMATION_SPEED = 15
 BOSS_ANIMATION_SPEED = 10
 
@@ -235,8 +258,7 @@ VERTICAL_STRUCTURE_WIDTH = 2
 TRUCK_PLATFORM_ROWS = 2
 
 
-# --- GAME STATES ---
-# Game states
+# GAME STATES
 PLAYING = "playing"
 TRUCK_SEQUENCE = "truck_sequence"
 BOSS_SEQUENCE = "boss_sequence"

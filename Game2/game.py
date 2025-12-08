@@ -1,81 +1,63 @@
 import pyxel
 import constants
-
 from factory import Factory
 from game_info import GameInfo
 from menu import Menu
-
-# Import all individual game object classes
-from character import Character
-from boss import Boss
-from door import Door
-from truck import Truck
 from package_manager import PackageManager
-from game_platform import Platform
-from conveyor import Conveyor
-from exit_signal import ExitSignal
-from machine import Machine
-from window import Window
-from level_sign import LevelSign
-from vertical_structure import VerticalStructure
-
+from character import Character
 
 class Game:
-    """
-    The main game class that orchestrates all game objects, states,
-    and the main update and draw loops. It integrates logic from the
-    original Board, Menu, and GameInfo classes.
-    """
+    """Manages the main game state, objects, and game loops."""
     def __init__(self):
-        pyxel.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, title="Super Package Bros.", fps=30)
+        """Initializes the game window and core components."""
+        pyxel.init(constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT, title="Super Package Bros.", fps = 30)
         pyxel.load(constants.SPRITES_FILE)
         
         self.game_info = GameInfo()
         self.menu = Menu()
         self.state = constants.MAIN_MENU
-        self.difficulty = "EASY" # Default difficulty
+        self.difficulty = "EASY"
 
-        self.factory = None
-        self.mario = None
-        self.luigi = None
-        self.boss = None
-        self.door_left = None
-        self.door_right = None
-        self.truck = None
-        self.conveyors = []
-        self.platforms = []
-        self.windows = []
-        self.machine = None
-        self.level_sign = None
-        self.exit_signal = None
-        self.vertical_structure = None
-        self.package_manager = None
-
-        self.score = 0
-        self.failures = 0
+        # We initialize all attributes to None (or empty lists) for clarity. We group them to shorten the init method.
+        self.factory = self.package_manager = None
+        self.mario = self.luigi = self.boss = self.truck = None
+        self.door_left = self.door_right = None
+        self.machine = self.level_sign = self.exit_signal = self.vertical_structure = None
         self.punished_char = None
-        self.deliveries_count = 0
+        self.windows = []
+        self.platforms = []
+        self.conveyors = []
+        self.score = self.failures = self.deliveries_count = 0
 
-    def reset_game(self):
-        """
-        Resets all game state to initial values and recreates game objects
-        based on the current difficulty.
-        """
+        # State management dictionaries. Define here to avoid calculating them every frame
+        self.__state_updaters = {constants.MAIN_MENU: self.__update_main_menu, constants.PLAYING: self.__update_playing,
+                                 constants.TRUCK_SEQUENCE: self.__update_truck_sequence, constants.BOSS_SEQUENCE: self.__update_boss_sequence,
+                                 constants.GAME_OVER: self.__update_game_over}
+        self.__state_drawers = {constants.MAIN_MENU: self.menu.draw, constants.PLAYING: self.__draw_playing, constants.TRUCK_SEQUENCE: self.__draw_playing,
+                                constants.BOSS_SEQUENCE: self.__draw_playing, constants.GAME_OVER: self.__draw_game_over}
+
+    def start_game(self):
+        """Creates all game objects and resets game state variables."""
         self.factory = Factory(self.difficulty)
-
-        # Create background elements
-        self.windows, self.machine, self.level_sign = self.factory.create_background_elements()
-        
-        # Create world elements
-        self.truck, self.exit_signal, self.vertical_structure, \
-        self.platforms, self.conveyors = self.factory.create_world_elements()
-        
-        # Create characters and boss
-        self.mario, self.luigi, self.boss, \
-        self.door_left, self.door_right = self.factory.create_characters_and_boss()
-
+        self.factory.create_all_objects()
+        # Assign all game objects from the factory to local attributes for easier access
+        self.mario = self.factory.mario
+        self.luigi = self.factory.luigi
+        self.boss = self.factory.boss
+        self.door_left = self.factory.door_left
+        self.door_right = self.factory.door_right
+        self.truck = self.factory.truck
+        self.windows = self.factory.windows
+        self.platforms = self.factory.platforms
+        self.conveyors = self.factory.conveyors
+        self.machine = self.factory.machine
+        self.level_sign = self.factory.level_sign
+        self.exit_signal = self.factory.exit_signal
+        self.vertical_structure = self.factory.vertical_structure
+        # Create the package manager with the conveyors and difficulty
         self.package_manager = PackageManager(self.conveyors, self.difficulty)
         
+        # Reset game state variables
         self.score = 0
         self.failures = 0
         self.punished_char = None
@@ -83,95 +65,73 @@ class Game:
         self.state = constants.PLAYING
 
     def handle_truck_bonus(self):
-        """Checks if a bonus for successful deliveries should be awarded."""
+        """Removes a failure point if enough deliveries have been made."""
         self.deliveries_count += 1
 
-        if self.difficulty == "CRAZY":
-            return
-
-        bonus_requirements = {
-            "EASY": constants.BONUS_REQUIRED_EASY,
-            "MEDIUM": constants.BONUS_REQUIRED_MED_EXTREME,
-            "EXTREME": constants.BONUS_REQUIRED_MED_EXTREME
-        }
-        
+        bonus_requirements = {"EASY": constants.BONUS_REQUIRED_EASY, "MEDIUM": constants.BONUS_REQUIRED_MED_EXTREME, "EXTREME": constants.BONUS_REQUIRED_MED_EXTREME}
         required = bonus_requirements.get(self.difficulty)
-        
+        # We check if required is not None (for CRAZY difficulty it is None)
         if required and (self.deliveries_count % required == 0) and self.failures > 0:
             self.failures -= 1
 
-    def initiate_punishment(self, character_name: str):
-        """Activates the boss sequence for a character's failure."""
-        if character_name == "Mario":
-            self.punished_char = self.mario
-            self.boss.appear("MARIO_FAIL")
-        else:
-            self.punished_char = self.luigi
-            self.boss.appear("LUIGI_FAIL")
-        
+    def initiate_punishment(self, culprit: Character):
+        """
+        Starts the boss punishment sequence for a failed character.
+        :param culprit: The character object that failed.
+        """
+        self.punished_char = culprit
+        self.boss.appear_for_fail(culprit)
         self.punished_char.enter_punishment_mode()
         self.state = constants.BOSS_SEQUENCE
 
     def update(self):
-        """
-        The main update loop, which dispatches to other update methods
-        based on the current game state.
-        """
+        """The main update loop, called by Pyxel every frame."""
         if pyxel.btnp(pyxel.KEY_ESCAPE):
             pyxel.quit()
-
-        state_updaters = {
-            constants.MAIN_MENU: self.__update_main_menu,
-            constants.PLAYING: self.__update_playing,
-            constants.TRUCK_SEQUENCE: self.__update_truck_sequence,
-            constants.BOSS_SEQUENCE: self.__update_boss_sequence,
-            constants.GAME_OVER: self.__update_game_over
-        }
-        
-        update_method = state_updaters.get(self.state)
-        if update_method:
-            update_method()
-        
-        # Update elements that might need to run regardless of game state transitions
-        if self.door_left:
-            self.door_left.update()
-        if self.door_right:
-            self.door_right.update()
+        self.__state_updaters[self.state]()
 
     def __update_main_menu(self):
-        """Handles logic when in the main menu state."""
+        """Handles user input on the main menu."""
         selected_difficulty = self.menu.update()
         if selected_difficulty:
             self.difficulty = selected_difficulty
-            self.reset_game()
+            self.start_game()
 
-    def __update_playing(self):
-        """Handles game logic when the game is in the 'PLAYING' state."""
-        results = self.package_manager.update(self.score, self.mario, self.luigi, self.truck)
-        
+    def __process_package_results(self, results: dict):
+        """
+        Processes the results from package updates, adjusting score, failures, and game state as needed.
+        :param results: A dictionary containing score, failures, and state changes.
+        """
         self.score += results["score_change"]
         self.failures += results["failures"]
-        
         if results["new_state"]:
             self.state = results["new_state"]
             if self.state == constants.TRUCK_SEQUENCE:
                 self.package_manager.clear_top_floor_packages()
             if results["truck_bonus"]:
                 self.handle_truck_bonus()
-
         if self.failures >= constants.MAX_FAILURES:
             self.state = constants.GAME_OVER
         elif results["culprit"]:
             self.initiate_punishment(results["culprit"])
 
+    def __update_playing(self):
+        """Handles the main game logic when the game is active."""
+        results = self.package_manager.update(self.score, self.mario, self.luigi, self.truck)
+        self.__process_package_results(results)
         self.mario.update()
         self.luigi.update()
+        self.door_left.update()
+        self.door_right.update()
 
     def __update_truck_sequence(self):
-        """Handles the truck delivery animation sequence."""
+        """Handles the truck delivery animation."""
+        self.package_manager.update_falling_packages()
         self.truck.update()
-        # Keep characters in rest mode during truck sequence
-        if self.mario.state != constants.CHAR_STATE_REST1 and self.mario.state != constants.CHAR_STATE_REST2:
+        self.door_left.update()
+        self.door_right.update()
+
+        if self.mario.state not in [constants.CHAR_STATE_REST1, constants.CHAR_STATE_REST2]:
             self.mario.enter_rest_mode()
             self.luigi.enter_rest_mode()
         self.mario.update()
@@ -179,90 +139,65 @@ class Game:
 
         if not self.truck.is_delivering:
             self.score += constants.POINTS_PER_TRUCK
-            self.boss.appear("BREAK")
+            self.boss.appear_for_break()
             self.state = constants.BOSS_SEQUENCE
 
     def __update_boss_sequence(self):
-        """Handles the boss appearance animation (for failures or breaks)."""
+        """Handles the boss appearance animation."""
+        self.package_manager.update_falling_packages()
         self.boss.update()
+        self.door_left.update()
+        self.door_right.update()
+
         if not self.boss.is_active:
+            # If there was a punished character, exit their punishment mode
             if self.punished_char:
                 self.punished_char.exit_punishment_mode()
                 self.punished_char = None
+            # Exit rest mode for both characters
             self.mario.exit_rest_mode()
             self.luigi.exit_rest_mode()
             self.state = constants.PLAYING
 
     def __update_game_over(self):
-        """Handles the game over screen and input for restarting."""
-        if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_RETURN):
+        """Handles the game over screen."""
+        if pyxel.btnp(pyxel.KEY_SPACE):
             self.state = constants.MAIN_MENU
 
     def draw(self):
-        """
-        The main draw loop, which dispatches to other draw methods
-        based on the current game state.
-        """
+        """The main draw loop, called by Pyxel every frame."""
         pyxel.cls(0)
-
-        state_drawers = {
-            constants.MAIN_MENU: self.__draw_main_menu,
-            constants.PLAYING: self.__draw_playing,
-            constants.TRUCK_SEQUENCE: self.__draw_playing, # Truck sequence draws similarly to playing state
-            constants.BOSS_SEQUENCE: self.__draw_playing,  # Boss sequence draws similarly to playing state
-            constants.GAME_OVER: self.__draw_game_over
-        }
-        
-        draw_method = state_drawers.get(self.state)
-        if draw_method:
-            draw_method()
-
-    def __draw_main_menu(self):
-        """Draws the main menu."""
-        self.menu.draw()
+        self.__state_drawers[self.state]()
 
     def __draw_playing(self):
-        """Draws all the elements for the main game screen."""
-        # Draw packages first, so they are below everything else
-        self.package_manager.draw()
-
-        # Draw background elements
-        for w in self.windows: w.draw()
+        """Draws all game elements in the correct order."""
+        for w in self.windows: 
+            w.draw()
         self.machine.draw()
         self.level_sign.draw()
         self.exit_signal.draw()
         self.door_left.draw()
         self.door_right.draw()
-        
-        # Draw platforms and conveyors
-        for p in self.platforms: p.draw()
-        for c in self.conveyors: c.draw()
-
-        # Draw truck
+        self.package_manager.draw()
+        for p in self.platforms: 
+            p.draw()
+        for c in self.conveyors: 
+            c.draw()
         self.truck.draw()
-
-        # Draw characters
         self.mario.draw()
         self.luigi.draw()
-
-        # Draw boss (if active)
         self.boss.draw()
-
-        # Draw the vertical structure last so it covers other elements
         self.vertical_structure.draw()
-        
-        # HUD is drawn on top of everything
         self.game_info.draw_score(self.score)
         self.game_info.draw_lives(self.failures)
 
     def __draw_game_over(self):
         """Draws the game over screen."""
         sprite = constants.GAME_OVER_SPRITE
-        img, u, v, w, h, colkey = sprite # Unpack sprite tuple
+        img, u, v, w, h, colkey = sprite
         
         x_img = (constants.SCREEN_WIDTH - w) / 2
         y_img = (constants.SCREEN_HEIGHT - h) / 2 + constants.GAME_OVER_Y_OFFSET
-
         pyxel.blt(x_img, y_img, img, u, v, w, h, colkey)
 
         score_y = y_img + h + constants.GAME_OVER_SCORE_Y_OFFSET

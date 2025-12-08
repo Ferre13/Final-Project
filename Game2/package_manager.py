@@ -1,130 +1,124 @@
 import pyxel
 import constants
 from package import Package
-from conveyor import Conveyor # Only for type hinting in __init__
+from character import Character
 
 class PackageManager:
-    """
-    Manages all logic related to packages, including spawning, updating,
-    and handling transfers and failures.
-    """
+    """Manages the spawning, movement, and logic for all packages."""
     def __init__(self, conveyors: list, difficulty: str):
         """
         Initializes the package manager.
-        
-        :param conveyors: A list of the conveyor belt objects.
-        :param difficulty: The game difficulty setting.
+        :param conveyors: A list of the game's conveyor belt objects.
+        :param difficulty: The current game difficulty.
         """
         self.conveyors = conveyors
         self.difficulty = difficulty
         self.packages = []
         self.last_spawn_frame = 0
 
-    def update(self, score: int, mario, luigi, truck) -> dict:
+        # Define thresholds once to avoid recreating the dictionary every frame
+        self.spawn_score_thresholds = {"EASY": constants.SPAWN_SCORE_THRESHOLD_EASY, "MEDIUM": constants.SPAWN_SCORE_THRESHOLD_MED_EXTREME,
+            "EXTREME": constants.SPAWN_SCORE_THRESHOLD_MED_EXTREME, "CRAZY": constants.SPAWN_SCORE_THRESHOLD_CRAZY}
+
+    def update(self, score: int, mario: Character, luigi: Character, truck, run_game_logic: bool = True) -> dict:
         """
-        The main update method for all package-related logic.
-        
+        Updates all package logic for one frame.
         :param score: The current game score.
         :param mario: The Mario character object.
         :param luigi: The Luigi character object.
         :param truck: The Truck object.
+        :param run_game_logic: If False, only moves packages without checking for new events.
         :return: A dictionary with the results of the update cycle.
         """
-        self.__update_package_spawning(score)
-        
-        results = {
-            "failures": 0,
-            "score_change": 0,
-            "new_state": None,
-            "culprit": None,
-            "truck_bonus": False
-        }
-        
-        self.__update_packages(mario, luigi, truck, results)
-        
+        if run_game_logic:
+            self.__update_package_spawning(score)
+        results = {"failures": 0, "score_change": 0, "new_state": None, "culprit": None, "truck_bonus": False}
+        self.__update_packages(mario, luigi, truck, results, run_game_logic)
         return results
 
-    def __calculate_max_packages(self, score: int) -> int:
-        """Calculates the maximum number of packages allowed on screen based on score."""
+    def update_falling_packages(self):
+        """Only updates packages that are currently in the FALLING state."""
+        for p in self.packages[:]:
+            if p.state == constants.PKG_STATE_FALLING:
+                status = p.update()
+                if status == constants.PKG_STATUS_DELETE_ME:
+                    self.packages.remove(p)
+
+    def __calculate_min_packages(self, score: int) -> int:
+        """
+        Calculates the min number of packages allowed based on score.
+        :param score: The current game score.
+        """
         limit = constants.INITIAL_PACKAGE_LIMIT
-        
-        thresholds = {
-            "EASY": constants.SPAWN_SCORE_THRESHOLD_EASY,
-            "MEDIUM": constants.SPAWN_SCORE_THRESHOLD_MED_EXTREME,
-            "EXTREME": constants.SPAWN_SCORE_THRESHOLD_MED_EXTREME,
-            "CRAZY": constants.SPAWN_SCORE_THRESHOLD_CRAZY
-        }
-        
-        threshold = thresholds.get(self.difficulty, 1) # Default to 1 to avoid division by zero
-        if threshold > 0:
-            limit += (score // threshold)
+        threshold = self.spawn_score_thresholds.get(self.difficulty)
+        limit += (score // threshold)
             
         return limit
 
     def __update_package_spawning(self, score: int):
         """
-        Handles all package spawning logic, combining periodic spawning with
-        spawning to meet a minimum package count.
+        Handles the logic for spawning new packages.
+        :param score: The current game score, used to determine min packages.
         """
         time_since_last_spawn = pyxel.frame_count - self.last_spawn_frame
         
-        # Determine if conditions are met for either type of spawn
-        is_below_minimum = len(self.packages) < self.__calculate_max_packages(score)
+        is_below_minimum = len(self.packages) < self.__calculate_min_packages(score)
         periodic_timer_elapsed = time_since_last_spawn > constants.PERIODIC_SPAWN_TIME
         fill_in_timer_elapsed = time_since_last_spawn > constants.SPAWN_TIMER_GAP
-        
-        # Spawn if the periodic timer is up, or if we're below the minimum and the shorter cooldown is up.
-        should_spawn = periodic_timer_elapsed or (is_below_minimum and fill_in_timer_elapsed)
-        
-        if should_spawn:
-            new_pck = Package(self.difficulty, self.conveyors[0], 0)
-            self.packages.append(new_pck)
-            self.last_spawn_frame = pyxel.frame_count
+        if fill_in_timer_elapsed:
+            if periodic_timer_elapsed or is_below_minimum:
+                new_pck = Package(self.difficulty, self.conveyors[0])
+                self.packages.append(new_pck)
+                self.last_spawn_frame = pyxel.frame_count
 
     def clear_top_floor_packages(self):
         """Removes all packages from the top conveyor."""
-        if not self.conveyors:
-            return
         top_floor_index = len(self.conveyors) - 1
-        self.packages = [p for p in self.packages if p.floor_index != top_floor_index]
+        packages_to_keep = []
+        for p in self.packages:
+            if p.floor_index != top_floor_index:
+                packages_to_keep.append(p)
+        self.packages = packages_to_keep
 
-    def __update_packages(self, mario, luigi, truck, results: dict):
+    def __update_packages(self, mario: Character, luigi: Character, truck, results: dict, run_game_logic: bool):
         """
-        Updates all packages and checks their status.
+        Updates each package and checks for state changes like transfers or falls.
+        :param mario: The Mario object.
+        :param luigi: The Luigi object.
+        :param truck: The Truck object.
+        :param results: The dictionary to populate with update results.
+        :param run_game_logic: If False, only moves packages without checking for new events.
         """
-        for p in self.packages[:]: # Iterate over a copy to allow modification during loop
+        # Iterate over a copy of the list to allow removing items during the loop.
+        for p in self.packages[:]:
+            # Always update the package's internal physics
             status = p.update()
-            
-            if status == constants.PKG_STATUS_REACHED_END:
+            # Only check for new game logic events if the flag is true
+            if run_game_logic and status == constants.PKG_STATUS_REACHED_END:
                 self.__handle_package_transfer(p, mario, luigi, truck, results)
-            elif status == constants.PKG_STATUS_FALLEN_MARIO:
-                self.__handle_failure(p, "Mario", results)
-            elif status == constants.PKG_STATUS_FALLEN_LUIGI:
-                self.__handle_failure(p, "Luigi", results)
+            # Always check if a package has fallen completely off-screen
+            elif status == constants.PKG_STATUS_DELETE_ME:
+                self.packages.remove(p)
 
-    def __handle_failure(self, p: Package, culprit: str, results: dict):
-        """Handles the consequences of a package falling."""
-        self.packages.remove(p)
-        results["failures"] += 1
-        results["culprit"] = culprit
-
-    def __handle_package_transfer(self, p: Package, mario, luigi, truck, results: dict):
+    def __handle_package_transfer(self, p: Package, mario: Character, luigi: Character, truck, results: dict):
         """
-        Handles the logic for transferring a package between conveyors or to the truck.
+        Handles moving a package between conveyors or to the truck.
+        :param p: The package to be transferred.
+        :param mario: The Mario object.
+        :param luigi: The Luigi object.
+        :param truck: The Truck object.
+        :param results: The dictionary to populate with update results.
         """
-        is_mario_turn = mario.floor == p.floor_index and p.floor_index % 2 == 0
-        is_luigi_turn = luigi.floor == p.floor_index and p.floor_index % 2 != 0
-        can_transfer = is_mario_turn or is_luigi_turn
+        can_mario_receive = mario.can_receive_package(p.floor_index)
+        can_luigi_receive = luigi.can_receive_package(p.floor_index)
+        can_transfer = can_mario_receive or can_luigi_receive
 
         if can_transfer:
-            # Tell the character to show the transfer pose for one frame
-            if is_mario_turn:
+            if can_mario_receive:
                 mario.show_transfer_pose()
             else:
                 luigi.show_transfer_pose()
-
             next_idx = p.floor_index + 1
-            
             if next_idx < len(self.conveyors):
                 p.advance_to_conveyor(self.conveyors[next_idx])
                 results["score_change"] += constants.POINTS_PER_PACKAGE
@@ -135,9 +129,17 @@ class PackageManager:
                 self.packages.remove(p)
                 results["score_change"] += constants.POINTS_PER_PACKAGE
         else:
+            # The package was missed, so register the failure immediately.
+            if p.floor_index % 2 == 0:
+                culprit = mario
+            else:
+                culprit = luigi
+            results["failures"] += 1
+            results["culprit"] = culprit
+            # Start the visual falling animation for the package.
             p.fall()
 
     def draw(self):
-        """Draws all active packages."""
+        """Draws all packages."""
         for p in self.packages:
             p.draw()
